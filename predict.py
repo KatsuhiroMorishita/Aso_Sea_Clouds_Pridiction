@@ -14,8 +14,8 @@ import datetime
 import feature
 
 # 解析対象期間
-date_start = datetime.datetime(2015, 6, 26)
-date_end   = datetime.datetime(2015, 8, 8)
+date_start = datetime.datetime(2015, 8, 15)
+date_end   = datetime.datetime(2015, 8, 18)
 
 # 機械学習オブジェクトを生成
 clf = RandomForestClassifier()

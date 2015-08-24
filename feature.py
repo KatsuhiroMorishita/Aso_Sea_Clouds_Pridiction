@@ -225,9 +225,12 @@ def get_wind_direction_23_pointA(_date, weather_data_A, weather_data_B):
 	_date -= datetime.timedelta(days=1)
 	_date += datetime.timedelta(hours=23)
 	one_data = weather_data_A[_date]
+	#print(weather_data_A)
 	if one_data == None:
 			return
 	direction = one_data[index_A["風向"]]
+	#print(one_data)
+	exit()
 	#print(direction)
 	if direction != None:
 		label = ["北", "北北東", "北東", "東北東", "東", "東南東", "南東", "南南東", "南", "南南西", "南西", "西南西", "西", "西北西", "北西", "北北西", "静穏"]
@@ -348,6 +351,42 @@ def get_sight_range23_pointA(_date, weather_data_A, weather_data_B):
 
 
 
+def get_weather_dict(lines, th):
+	""" 気象データの辞書を返す
+	"""
+	weather_dict = {}
+	for line in lines:
+		line = line.rstrip()
+		if "時" in line:
+			continue
+		field = line.split(",")
+		t = field[0]
+		t = timeKM.getTime(t)
+		field = field[1:]
+		new_field = []
+		for mem in field:
+			fuga = mem.replace(".", "")
+			fuga = fuga.replace(" )", "") # 観測上のおかしなデータにくっつく記号
+			if len(fuga) > 0:
+				if "-" == fuga[0]:
+					fuga = fuga[1:]
+			if fuga.isdigit() == True:
+				mem = mem.replace(" )", "")
+				new_field.append(float(mem))
+			else:
+				if mem == "":
+					new_field.append(0.0)
+				elif mem == "×":         # 恐らく、非観測項目にくっつく記号
+					new_field.append(None)
+				else:
+					new_field.append(mem)
+		if len(new_field) >= th:
+			weather_dict[t] = new_field
+		else:
+			weather_dict[t] = None
+	return weather_dict
+
+
 def read_weather_data(fpath, th):
 	"""
 	気象データを読み込む
@@ -355,33 +394,7 @@ def read_weather_data(fpath, th):
 	weather_dict = {}
 	with open(fpath, "r", encoding="utf-8-sig") as fr:
 		lines = fr.readlines()
-		for line in lines:
-			line = line.rstrip()
-			field = line.split(",")
-			t = field[0]
-			t = timeKM.getTime(t)
-			field = field[1:]
-			new_field = []
-			for mem in field:
-				fuga = mem.replace(".", "")
-				fuga = fuga.replace(" )", "") # 観測上のおかしなデータにくっつく記号
-				if len(fuga) > 0:
-					if "-" == fuga[0]:
-						fuga = fuga[1:]
-				if fuga.isdigit() == True:
-					mem = mem.replace(" )", "")
-					new_field.append(float(mem))
-				else:
-					if mem == "":
-						new_field.append(0.0)
-					elif mem == "×":         # 恐らく、非観測項目にくっつく記号
-						new_field.append(None)
-					else:
-						new_field.append(mem)
-			if len(new_field) >= th:
-				weather_dict[t] = new_field
-			else:
-				weather_dict[t] = None
+		weather_dict = get_weather_dict(lines, th)
 	return weather_dict
 
 
