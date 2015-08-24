@@ -229,12 +229,14 @@ weather_data_Otohime = feature.get_weather_dict(otohime_lines, len(feature.index
 
 # 予想結果をストア
 results = []
-_day = dt.now() + td(days=1) # 23時頃に実行することを前提に、予想したい日の日付けを設定
+_day = dt.now()               # 23時以降に実行することを前提に、予想したい日の日付けを設定
+if _day.hours >= 10:
+	_day += td(days=1)
 _date = dt(year=_day.year, month=_day.month, day=_day.day)
 _feature = feature.create_feature(_date, weather_data_Aso, weather_data_Otohime)
 #print(_feature)
 if _feature != None:
-	if not None in _feature:      # ランダムフォレスト自体は欠損に強いはずだが、欠損があるとエラーが出たので対策
+	if not None in _feature:  # ランダムフォレスト自体は欠損に強いはずだが、欠損があるとエラーが出たので対策
 		test = clf.predict(_feature)
 		results.append((_date, test[0]))
 		print(test)
