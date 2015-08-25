@@ -225,12 +225,9 @@ def get_wind_direction_23_pointA(_date, weather_data_A, weather_data_B):
 	_date -= datetime.timedelta(days=1)
 	_date += datetime.timedelta(hours=23)
 	one_data = weather_data_A[_date]
-	#print(weather_data_A)
 	if one_data == None:
 			return
 	direction = one_data[index_A["風向"]]
-	#print(one_data)
-	exit()
 	#print(direction)
 	if direction != None:
 		label = ["北", "北北東", "北東", "東北東", "東", "東南東", "南東", "南南東", "南", "南南西", "南西", "西南西", "西", "西北西", "北西", "北北西", "静穏"]
@@ -401,6 +398,7 @@ def read_weather_data(fpath, th):
 def create_feature(_date, weather_data_A, weather_data_B):
 	""" 特徴ベクトルを作る
 	"""
+	#print("hoge")
 	_feature = [
 		get_season(_date, weather_data_A, weather_data_B), \
 		get_temperature14_pointB(_date, weather_data_A, weather_data_B), \
@@ -422,8 +420,9 @@ def create_feature(_date, weather_data_A, weather_data_B):
 		get_diff_air_pressure23_pointA(_date, weather_data_A, weather_data_B), \
 		get_bias_air_pressure23_pointA(_date, weather_data_A, weather_data_B), \
 		get_humidity23_pointA(_date, weather_data_A, weather_data_B) \
-		#get_sight_range23_pointA(_date, weather_data_A, weather_data_B) \ # 視程は噴火で観測されなくなっている
+		#get_sight_range23_pointA(_date, weather_data_A, weather_data_B) \ # 視程は311移行に活発になった噴火で観測されなくなっている
 		]
+	#print("fuga")
 	return _feature
 
 

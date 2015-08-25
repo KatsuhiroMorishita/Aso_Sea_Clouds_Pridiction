@@ -184,6 +184,7 @@ for i in range(1,days):
 html_bytes = otohime_node.get_data(_type="real-time")
 html_lines = resolve(html_bytes)
 data = amp.get_data(html_lines, dt.now())
+print(data)
 # 最新の観測データは過去の観測データとフォーマットが異なるので、整形する
 # 降水量と気温を入れ替える
 dummy = []
@@ -228,11 +229,13 @@ weather_data_Otohime = feature.get_weather_dict(otohime_lines, len(feature.index
 
 
 # 予想結果をストア
+print("--predict--")
 results = []
 _day = dt.now()               # 23時以降に実行することを前提に、予想したい日の日付けを設定
-if _day.hours >= 10:
+if _day.hour >= 10:
 	_day += td(days=1)
 _date = dt(year=_day.year, month=_day.month, day=_day.day)
+print(_date)
 _feature = feature.create_feature(_date, weather_data_Aso, weather_data_Otohime)
 #print(_feature)
 if _feature != None:
