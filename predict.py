@@ -9,16 +9,16 @@
 #----------------------------------------
 import pandas
 import pickle
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
 import datetime
 import feature
 
 # 解析対象期間
-date_start = datetime.datetime(2015, 8, 15)
-date_end   = datetime.datetime(2015, 8, 18)
+date_start = datetime.datetime(2015, 6, 23)
+date_end   = datetime.datetime(2015, 8, 24)
 
 # 機械学習オブジェクトを生成
-clf = RandomForestClassifier()
+clf = RandomForestRegressor()
 
 # 学習成果を読み出す
 with open('entry.pickle', 'rb') as f:
@@ -26,8 +26,8 @@ with open('entry.pickle', 'rb') as f:
 
 
 # 気象データの読み込み
-weather_data_Aso = feature.read_weather_data("fusion_aso_test.csv", len(feature.index_A))
-weather_data_Otohime = feature.read_weather_data("fusion_asoOtohime_test.csv", len(feature.index_B))
+weather_data_Aso = feature.read_weather_data("amedas_aso.csv", len(feature.index_A))
+weather_data_Otohime = feature.read_weather_data("amedas_asoOtohime.csv", len(feature.index_B))
 #print(weather_data_Aso)
 #print(weather_data_Otohime)
 
@@ -51,7 +51,7 @@ while _date <= date_end:
 with open("result.csv", "w") as fw:
 	for result in results:
 		_date, predict_result = result
-		for _ in range(5):            # Googleのスプレッドシートに合わせて、4行出力する
+		for _ in range(1):            # 複数行出力できるようにしている
 			fw.write(str(_date))
 			fw.write(",")
 			fw.write(str(predict_result))

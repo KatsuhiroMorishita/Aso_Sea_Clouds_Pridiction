@@ -9,14 +9,15 @@
 #----------------------------------------
 #地点A　阿蘇山頂, 地点B　阿蘇乙姫
 import datetime
+from datetime import datetime as dt
+from datetime import timedelta as td
 import feature
 import copy
 import random
 import timeKM
 
-# 処理の対象期間
-date_start = datetime.datetime(2005, 3, 10)
-date_end   = datetime.datetime(2013, 8, 1)
+# 処理の対象期間（過去のデータに加えて、最新の観測データも加えるので、タプルで期間を指定する）
+terms = [(dt(2005, 3, 10), dt(2013, 8, 1)), (dt(2015, 6, 23), dt(2015, 8, 24))]
 
 
 def get_unkai(_date, unkai_list):
@@ -74,30 +75,32 @@ with open("unkai_date.csv", "r", encoding="utf-8-sig") as fr:
 unkai_good = []
 unkai_bad= []
 #unkai_label = ["st0", "st1", "st2", "st3", "st4", "st5", "st6", "st7"]
-unkai_label = ["st0", "st1"]
-_date = date_start + datetime.timedelta(days=4)
-while _date <= date_end:
-	#print(_date)
-	_feature = feature.create_feature(_date, weather_data_Aso, weather_data_Otohime)
-	#print(_feature)
-	if _feature != None:
-		unkai_point = get_unkai(_date, unkai_date_list)# + get_unkai_pre1(_date, unkai_date_list) + get_unkai_pre2(_date, unkai_date_list)
-		_unkai = unkai_label[unkai_point]
-		one_teaching_data = _feature + [_unkai]
-		if _unkai == "st0":
-			unkai_bad.append((_date, one_teaching_data)) # 時刻と一緒にタプルで保存
-		else:
-			unkai_good.append((_date, one_teaching_data))
-		#print(_date, one_teaching_data)
-	_date += datetime.timedelta(days=1)
+#unkai_label = ["st0", "st1"]
+unkai_label = ["0", "1"]
+for date_start, date_end in terms:
+	_date = date_start
+	while _date <= date_end:
+		#print(_date)
+		_feature = feature.create_feature(_date, weather_data_Aso, weather_data_Otohime)
+		#print(_feature)
+		if _feature != None:
+			unkai_point = get_unkai(_date, unkai_date_list)# + get_unkai_pre1(_date, unkai_date_list) + get_unkai_pre2(_date, unkai_date_list)
+			_unkai = unkai_label[unkai_point]
+			one_teaching_data = _feature + [_unkai]
+			if _unkai == unkai_label[0]:
+				unkai_bad.append((_date, one_teaching_data)) # 時刻と一緒にタプルで保存
+			else:
+				unkai_good.append((_date, one_teaching_data))
+			#print(_date, one_teaching_data)
+		_date += datetime.timedelta(days=1)
 
 # 雲海が出たデータ数と、出なかったデータ数を揃える
 teaching_data = copy.copy(unkai_good)
-use_amount = int(len(unkai_good) * 1.0)
+use_amount = int(len(unkai_good) * 5.0)
 if len(unkai_bad) < use_amount:     # 雲海の出現日数よりも非出現日数が少ない場合、非出現データは全て使う
 	use_amount = len(unkai_bad)     # ただし、本気でやるなら偽陽性・偽陰性の許容量に合わせて教師データ数は決めるべき
 for _ in range(use_amount):
-	i = random.randint(0, use_amount - 1)
+	i = random.randint(0, len(unkai_bad) - 1)
 	new_member = unkai_bad.pop(i)
 	teaching_data.append(new_member)
 #print(teaching_data)

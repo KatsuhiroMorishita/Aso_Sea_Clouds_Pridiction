@@ -9,7 +9,7 @@
 # lisence: MIT
 #----------------------------------------
 import pandas
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor as ml
 
 # 学習に必要な教師データを読み出す
 data = pandas.read_csv("teaching_data.csv", na_values='None')
@@ -22,12 +22,12 @@ trainLabel = [flatten for inner in trainLabel for flatten in inner] # transform 
 #print(trainLabel)
 
 # 学習実行
-clf = RandomForestClassifier(max_features="auto")#, max_depth=7)
+clf = ml(max_features="auto")#, max_depth=7)
 clf.fit(trainFeature, trainLabel)
 
 # 学習成果を保存
 import pickle
-with open('entry.pickle', 'wb') as f:
+with open('entry_tmep.pickle', 'wb') as f:
 	pickle.dump(clf, f)
 
 # 学習結果を確認

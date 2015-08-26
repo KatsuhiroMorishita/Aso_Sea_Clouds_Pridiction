@@ -12,7 +12,7 @@ import datetime
 import timeKM
 
 
-index_B = {"時刻":0, "降水量":1, "気温":2, "風速":3, "風向":4, "日照時間":5}
+index_B = {"時刻":0, "降水量":1, "気温":2, "風速":3, "風向":4, "日照時間":5}#, "降雪":6, "積雪":7}
 index_A = {"時刻":0, "現地気圧":1, "海面気圧":2, "降水量":3, "気温":4, "露点温度":5, "蒸気圧":6, "湿度":7, "風速":8, "風向":9, "日照時間":10, "全天日射量":11, "降雪":12, "積雪":13, "天気":14, "雲量":15, "視程":16}
 
 
@@ -61,7 +61,10 @@ def get_average_temperature_3days_pointB(_date, weather_data_A, weather_data_B):
 		temperature.append(one_data[index_B["気温"]])
 		__date += datetime.timedelta(hours=1)
 	#print(temperature)
-	return sum(temperature) / float(len(temperature))
+	if not None in temperature:
+		return sum(temperature) / float(len(temperature))
+	else:
+		return None
 
 
 def get_rain_pointB(_date, weather_data_A, weather_data_B):
@@ -76,7 +79,10 @@ def get_rain_pointB(_date, weather_data_A, weather_data_B):
 		rain.append(one_data[index_B["降水量"]])
 		__date += datetime.timedelta(hours=1)
 	#print(rain)
-	return sum(rain)
+	if not None in rain:
+		return sum(rain)
+	else:
+		return None
 
 
 def get_sunshine_pointA(_date, weather_data_A, weather_data_B):
@@ -95,7 +101,10 @@ def get_sunshine_pointA(_date, weather_data_A, weather_data_B):
 			sunshine.append(0.0)
 		__date += datetime.timedelta(hours=1)
 	#print(sunshine)
-	return sum(sunshine)
+	if not None in sunshine:
+		return sum(sunshine)
+	else:
+		return None
 
 
 def get_temperature23_pointA(_date, weather_data_A, weather_data_B):
@@ -120,7 +129,6 @@ def get_temperature23_pointA(_date, weather_data_A, weather_data_B):
 			return
 	temperature = one_data[index_B["気温"]]
 	return temperature
-	pass
 
 
 def get_temperature_diff23_pointAB(_date, weather_data_A, weather_data_B):
@@ -136,7 +144,10 @@ def get_temperature_diff23_pointAB(_date, weather_data_A, weather_data_B):
 	if one_data == None:
 			return
 	temperature_B = one_data[index_B["気温"]]
-	return temperature_A - temperature_B
+	if temperature_A != None and temperature_B != None:
+		return temperature_A - temperature_B
+	else:
+		return None
 
 def get_temperature_diff18to23_pointA(_date, weather_data_A, weather_data_B):
 	""" 前日の18時-23時における気温差　地点A
@@ -152,7 +163,10 @@ def get_temperature_diff18to23_pointA(_date, weather_data_A, weather_data_B):
 	if one_data == None:
 			return
 	temperature_2 = one_data[index_A["気温"]]
-	return temperature_1 - temperature_2
+	if temperature_1 != None and temperature_2 != None:
+		return temperature_1 - temperature_2
+	else:
+		return None
 
 def get_temperature_diff18to23_pointB(_date, weather_data_A, weather_data_B):
 	""" 前日の18時-23時における気温差　地点B
@@ -168,7 +182,10 @@ def get_temperature_diff18to23_pointB(_date, weather_data_A, weather_data_B):
 	if one_data == None:
 			return
 	temperature_2 = one_data[index_B["気温"]]
-	return temperature_1 - temperature_2
+	if temperature_1 != None and temperature_2 != None:
+		return temperature_1 - temperature_2
+	else:
+		return None
 
 
 def get_temperature_diff06to14_pointA(_date, weather_data_A, weather_data_B):
@@ -205,7 +222,10 @@ def get_temperature_diff06to14_pointB(_date, weather_data_A, weather_data_B):
 	if one_data == None:
 			return
 	temperature_2 = one_data[index_B["気温"]]
-	return temperature_1 - temperature_2
+	if temperature_1 != None and temperature_2 != None:
+		return temperature_1 - temperature_2
+	else:
+		return None
 
 
 def get_wind23_pointB(_date, weather_data_A, weather_data_B):
@@ -229,7 +249,7 @@ def get_wind_direction_23_pointA(_date, weather_data_A, weather_data_B):
 			return
 	direction = one_data[index_A["風向"]]
 	#print(direction)
-	if direction != None:
+	if direction != None and direction != 0.0:
 		label = ["北", "北北東", "北東", "東北東", "東", "東南東", "南東", "南南東", "南", "南南西", "南西", "西南西", "西", "西北西", "北西", "北北西", "静穏"]
 		return label.index(direction)#int(label.index(direction) / 4)
 	else:
@@ -265,7 +285,21 @@ def get_dew_temperature23_pointA(_date, weather_data_A, weather_data_B):
 			return
 	temperature = one_data[index_A["露点温度"]]
 	return temperature
-	pass
+
+def get_TTd23_pointA(_date, weather_data_A, weather_data_B):
+	""" 前日の23時における湿数　地点A
+	"""
+	_date -= datetime.timedelta(days=1)
+	_date += datetime.timedelta(hours=23)
+	one_data = weather_data_A[_date]
+	if one_data == None:
+			return
+	T = one_data[index_A["気温"]]
+	Td = one_data[index_A["露点温度"]]
+	TTd = None
+	if T != None and Td != None:
+		TTd = T - Td
+	return TTd
 
 
 def get_vapor_pressure23_pointA(_date, weather_data_A, weather_data_B):
@@ -278,7 +312,6 @@ def get_vapor_pressure23_pointA(_date, weather_data_A, weather_data_B):
 			return
 	vapor_pressure = one_data[index_A["蒸気圧"]]
 	return vapor_pressure
-	pass
 
 
 def get_diff_air_pressure23_pointA(_date, weather_data_A, weather_data_B):
@@ -363,7 +396,7 @@ def get_weather_dict(lines, th):
 		new_field = []
 		for mem in field:
 			fuga = mem.replace(".", "")
-			fuga = fuga.replace(" )", "") # 観測上のおかしなデータにくっつく記号
+			fuga = fuga.replace(" )", "")          # 観測上のおかしなデータにくっつく記号
 			if len(fuga) > 0:
 				if "-" == fuga[0]:
 					fuga = fuga[1:]
@@ -373,7 +406,7 @@ def get_weather_dict(lines, th):
 			else:
 				if mem == "":
 					new_field.append(0.0)
-				elif mem == "×":         # 恐らく、非観測項目にくっつく記号
+				elif mem == "×" or mem == "///":   # 恐らく、非観測項目にくっつく記号
 					new_field.append(None)
 				else:
 					new_field.append(mem)
@@ -398,7 +431,7 @@ def read_weather_data(fpath, th):
 def create_feature(_date, weather_data_A, weather_data_B):
 	""" 特徴ベクトルを作る
 	"""
-	#print("hoge")
+	print("feature of ", _date)
 	_feature = [
 		get_season(_date, weather_data_A, weather_data_B), \
 		get_temperature14_pointB(_date, weather_data_A, weather_data_B), \
@@ -416,6 +449,7 @@ def create_feature(_date, weather_data_A, weather_data_B):
 		get_wind_direction_23_pointA(_date, weather_data_A, weather_data_B), \
 		get_wind_night_pointA(_date, weather_data_A, weather_data_B), \
 		get_dew_temperature23_pointA(_date, weather_data_A, weather_data_B), \
+		get_TTd23_pointA(_date, weather_data_A, weather_data_B), \
 		get_vapor_pressure23_pointA(_date, weather_data_A, weather_data_B), \
 		get_diff_air_pressure23_pointA(_date, weather_data_A, weather_data_B), \
 		get_bias_air_pressure23_pointA(_date, weather_data_A, weather_data_B), \
