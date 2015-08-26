@@ -256,6 +256,7 @@ def main():
 	_feature = feature.create_feature(_date, weather_data_Aso, weather_data_Otohime)
 	print(_feature)
 	done = False
+	results = []
 	if _feature != None:
 		if not None in _feature:  # ランダムフォレスト自体は欠損に強いはずだが、欠損があるとエラーが出たので対策
 			test = clf.predict(_feature)
