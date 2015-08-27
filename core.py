@@ -1,8 +1,8 @@
 #!usr/bin/python3
 # -*- coding: utf-8 -*-
 #----------------------------------------
-# name: predict
-# purpose: ランダムフォレストを用いた、雲海出現を予測する
+# name: core
+# purpose: ランダムフォレストを用いて雲海の発生を予測する
 # author: Katsuhiro MORISHITA, 森下功啓
 # created: 2015-08-08
 # lisence: MIT
@@ -10,6 +10,7 @@
 import pandas
 import pickle
 import math
+import time
 from sklearn.ensemble import RandomForestRegressor as ml # RandomForestClassifier クラス分けならこれ
 from datetime import datetime as dt
 from datetime import timedelta as td
@@ -19,6 +20,7 @@ import amedas.html_parser as amp
 
 # 何日前のデータまで取るか
 days = 5
+wait_seconds = 0.1                        # たまにプロキシ？ファイヤウォール？が通信をカットするのでその対策.ほとんど意味がなかったが。。
 
 
 
@@ -35,7 +37,9 @@ def resolve(txt_bytes):
 def get_amedas_data_typeA(node_obj):
 	lines = []
 	# 過去データを入手
-	for i in range(1,days):
+	for i in range(1, days):
+		print("--wait some seconds--")
+		time.sleep(wait_seconds)        # たまにプロキシ？ファイヤウォール？が通信をカットするのでその対策
 		_date = dt.now()-td(days=i)
 		print(_date)
 		html_bytes = node_obj.get_data(_type="hourly", date=_date)
@@ -90,7 +94,9 @@ def get_amedas_data_typeA(node_obj):
 def get_amedas_data_typeB(node_obj):
 	lines = []
 	# 過去のデータを入手
-	for i in range(1,days):
+	for i in range(1, days):
+		print("--wait some seconds--")
+		time.sleep(wait_seconds)
 		_date = dt.now()-td(days=i)
 		print(_date)
 		html_bytes = node_obj.get_data(_type="hourly", date=_date)
@@ -279,4 +285,8 @@ def main():
 			fw.write(str(predict_result))
 			fw.write("\n")
 
-main()
+	return results
+
+
+if __name__ == '__main__':
+	main()
