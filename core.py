@@ -234,8 +234,17 @@ def main():
 	clf = ml()
 
 	# 学習成果を読み出す
-	with open('entry.pickle', 'rb') as f:
-		clf = pickle.load(f)               # オブジェクト復元
+	now = dt.now()
+	#now = dt(year=now.year, month=now.month, day=now.day, hour=23, minute=30) # テスト用
+	if 23 > now.hour >= 17:
+		with open('entry_17.pickle', 'rb') as f:
+			clf = pickle.load(f)               # オブジェクト復元
+	elif now.hour >= 23:
+		with open('entry_23.pickle', 'rb') as f:
+			clf = pickle.load(f)               # オブジェクト復元
+	else:
+		print("--NA now.--")
+		exit()
 
 	# アメダスの観測所オブジェクトを作成
 	amedas_nodes = amd.get_amedas_nodes()
@@ -252,15 +261,26 @@ def main():
 	#print(weather_data_Otohime)
 
 
-	# 予想結果をストア
+	# 予想したい日の日付けを設定
 	print("--predict--")
-	_day = dt.now()               # 23時以降に実行することを前提に、予想したい日の日付けを設定
-	if _day.hour >= 10:
+	_day = dt.now()
+	if _day.hour >= 10:           # この時刻を過ぎると、翌日の予想を実施する
 		_day += td(days=1)
 	_date = dt(year=_day.year, month=_day.month, day=_day.day)
 	print(_date)
-	_feature = feature.create_feature(_date, weather_data_Aso, weather_data_Otohime)
+
+	# 特徴ベクトルを生成
+	_feature = None
+	if 23 > now.hour >= 17:
+		_feature = feature.create_feature17(_date, weather_data_Aso, weather_data_Otohime)
+	elif now.hour >= 23:
+		_feature = feature.create_feature23(_date, weather_data_Aso, weather_data_Otohime)
+	else:
+		print("--NA now.--")
+		exit()
 	print(_feature)
+
+	# 予測を実施
 	done = False
 	results = []
 	if _feature != None:

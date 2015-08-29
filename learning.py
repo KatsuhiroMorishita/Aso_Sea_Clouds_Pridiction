@@ -27,7 +27,7 @@ clf.fit(trainFeature, trainLabel)
 
 # 学習成果を保存
 import pickle
-with open('entry_tmep.pickle', 'wb') as f:
+with open('entry_temp.pickle', 'wb') as f:
 	pickle.dump(clf, f)
 
 # 学習結果を確認

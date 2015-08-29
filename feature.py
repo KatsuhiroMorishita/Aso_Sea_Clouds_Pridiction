@@ -16,18 +16,17 @@ index_B = {"時刻":0, "降水量":1, "気温":2, "風速":3, "風向":4, "日�
 index_A = {"時刻":0, "現地気圧":1, "海面気圧":2, "降水量":3, "気温":4, "露点温度":5, "蒸気圧":6, "湿度":7, "風速":8, "風向":9, "日照時間":10, "全天日射量":11, "降雪":12, "積雪":13, "天気":14, "雲量":15, "視程":16}
 
 
-def get_season(_date, weather_data_A, weather_data_B):
+def get_season(_date, hour, weather_data_A, weather_data_B):
 	""" 日付けをシーズン化したもの
 	"""
 	return int((_date - datetime.datetime(_date.year, 1, 1)).total_seconds() / (7 * 24 * 3600))
 
 
-def get_temperature14_pointB(_date, weather_data_A, weather_data_B):
-	""" 前日の14時の気温　地点B
-	最高気温代わり
+def get_temperature_pointB(_date, hour, weather_data_A, weather_data_B):
+	""" 前日のhour時の気温　地点B
 	"""
 	_date -= datetime.timedelta(days=1)
-	_date += datetime.timedelta(hours=14)
+	_date += datetime.timedelta(hours=hour)
 	one_data = weather_data_B[_date]
 	if one_data == None:
 			return
@@ -35,21 +34,8 @@ def get_temperature14_pointB(_date, weather_data_A, weather_data_B):
 	return temperature
 
 
-def get_temperature06_pointB(_date, weather_data_A, weather_data_B):
-	""" 前日の06時の気温　地点B
-	最低気温代わり
-	"""
-	_date -= datetime.timedelta(days=1)
-	_date += datetime.timedelta(hours=6)
-	one_data = weather_data_B[_date]
-	if one_data == None:
-			return
-	temperature = one_data[index_B["気温"]]
-	return temperature
-	pass
 
-
-def get_average_temperature_3days_pointB(_date, weather_data_A, weather_data_B):
+def get_average_temperature_3days_pointB(_date, hour, weather_data_A, weather_data_B):
 	""" 3日間の平均気温　地点B
 	"""
 	__date = _date - datetime.timedelta(days=3)
@@ -67,7 +53,7 @@ def get_average_temperature_3days_pointB(_date, weather_data_A, weather_data_B):
 		return None
 
 
-def get_rain_pointB(_date, weather_data_A, weather_data_B):
+def get_rain_pointB(_date, hour, weather_data_A, weather_data_B):
 	""" 3日間の降水量　地点B
 	"""
 	__date = _date - datetime.timedelta(days=3)
@@ -85,7 +71,7 @@ def get_rain_pointB(_date, weather_data_A, weather_data_B):
 		return None
 
 
-def get_sunshine_pointA(_date, weather_data_A, weather_data_B):
+def get_sunshine_pointA(_date, hour, weather_data_A, weather_data_B):
 	""" 前日の日照時間の累積　地点A
 	"""
 	__date = _date - datetime.timedelta(days=1)
@@ -107,11 +93,11 @@ def get_sunshine_pointA(_date, weather_data_A, weather_data_B):
 		return None
 
 
-def get_temperature23_pointA(_date, weather_data_A, weather_data_B):
-	""" 前日の23時における気温　地点A
+def get_temperature_pointA(_date, hour, weather_data_A, weather_data_B):
+	""" 前日のhour時における気温　地点A
 	"""
 	_date -= datetime.timedelta(days=1)
-	_date += datetime.timedelta(hours=23)
+	_date += datetime.timedelta(hours=hour)
 	one_data = weather_data_A[_date]
 	if one_data == None:
 			return
@@ -119,7 +105,7 @@ def get_temperature23_pointA(_date, weather_data_A, weather_data_B):
 	return temperature
 
 
-def get_temperature23_pointA(_date, weather_data_A, weather_data_B):
+def get_temperature23_pointA(_date, hour, weather_data_A, weather_data_B):
 	""" 前日の23時における気温　地点B
 	"""
 	_date -= datetime.timedelta(days=1)
@@ -131,11 +117,11 @@ def get_temperature23_pointA(_date, weather_data_A, weather_data_B):
 	return temperature
 
 
-def get_temperature_diff23_pointAB(_date, weather_data_A, weather_data_B):
-	""" 前日の23時における気温差　地点A-地点B
+def get_temperature_diff_pointAB(_date, hour, weather_data_A, weather_data_B):
+	""" 前日のhour時における気温差　地点A-地点B
 	"""
 	_date -= datetime.timedelta(days=1)
-	_date += datetime.timedelta(hours=23)
+	_date += datetime.timedelta(hours=hour)
 	one_data = weather_data_A[_date]
 	if one_data == None:
 			return
@@ -149,12 +135,12 @@ def get_temperature_diff23_pointAB(_date, weather_data_A, weather_data_B):
 	else:
 		return None
 
-def get_temperature_diff18to23_pointA(_date, weather_data_A, weather_data_B):
-	""" 前日の18時-23時における気温差　地点A
+def get_temperature_diff18toX_pointA(_date, hour, weather_data_A, weather_data_B):
+	""" 前日の18時-hour時における気温差　地点A
 	"""
 	_date -= datetime.timedelta(days=1)
 	time1 = _date + datetime.timedelta(hours=18)
-	time2 = _date + datetime.timedelta(hours=23)
+	time2 = _date + datetime.timedelta(hours=hour)
 	one_data = weather_data_A[time1]
 	if one_data == None:
 			return
@@ -168,12 +154,12 @@ def get_temperature_diff18to23_pointA(_date, weather_data_A, weather_data_B):
 	else:
 		return None
 
-def get_temperature_diff18to23_pointB(_date, weather_data_A, weather_data_B):
-	""" 前日の18時-23時における気温差　地点B
+def get_temperature_diff18toX_pointB(_date, hour, weather_data_A, weather_data_B):
+	""" 前日の18時-hour時における気温差　地点B
 	"""
 	_date -= datetime.timedelta(days=1)
 	time1 = _date + datetime.timedelta(hours=18)
-	time2 = _date + datetime.timedelta(hours=23)
+	time2 = _date + datetime.timedelta(hours=hour)
 	one_data = weather_data_B[time1]
 	if one_data == None:
 			return
@@ -188,7 +174,7 @@ def get_temperature_diff18to23_pointB(_date, weather_data_A, weather_data_B):
 		return None
 
 
-def get_temperature_diff06to14_pointA(_date, weather_data_A, weather_data_B):
+def get_temperature_diff06to14_pointA(_date, hour, weather_data_A, weather_data_B):
 	""" 前日の06時-14時における気温差　地点A
 	"""
 	_date -= datetime.timedelta(days=1)
@@ -208,7 +194,7 @@ def get_temperature_diff06to14_pointA(_date, weather_data_A, weather_data_B):
 		return None
 
 
-def get_temperature_diff06to14_pointB(_date, weather_data_A, weather_data_B):
+def get_temperature_diff06to14_pointB(_date, hour, weather_data_A, weather_data_B):
 	""" 前日の06時-14時における気温差　地点B
 	"""
 	_date -= datetime.timedelta(days=1)
@@ -228,22 +214,22 @@ def get_temperature_diff06to14_pointB(_date, weather_data_A, weather_data_B):
 		return None
 
 
-def get_wind23_pointB(_date, weather_data_A, weather_data_B):
+def get_wind_pointB(_date, hour, weather_data_A, weather_data_B):
 	""" 前日の23時における風速　地点B
 	"""
 	_date -= datetime.timedelta(days=1)
-	_date += datetime.timedelta(hours=23)
+	_date += datetime.timedelta(hours=hour)
 	one_data = weather_data_B[_date]
 	if one_data == None:
 			return
 	wind = one_data[index_B["風速"]]
 	return wind
 
-def get_wind_direction_23_pointA(_date, weather_data_A, weather_data_B):
-	""" 前日の23時における風向　地点A
+def get_wind_direction_pointA(_date, hour, weather_data_A, weather_data_B):
+	""" 前日のhour時における風向　地点A
 	"""
 	_date -= datetime.timedelta(days=1)
-	_date += datetime.timedelta(hours=23)
+	_date += datetime.timedelta(hours=hour)
 	one_data = weather_data_A[_date]
 	if one_data == None:
 			return
@@ -255,7 +241,7 @@ def get_wind_direction_23_pointA(_date, weather_data_A, weather_data_B):
 	else:
 		return None
 
-def get_wind_night_pointA(_date, weather_data_A, weather_data_B):
+def get_wind_night_pointA(_date, hour, weather_data_A, weather_data_B):
 	""" 前日の21-23時における風速　地点A
 	"""
 	_date -= datetime.timedelta(days=1)
@@ -275,22 +261,22 @@ def get_wind_night_pointA(_date, weather_data_A, weather_data_B):
 		return sum(wind) / float(len(wind))
 
 
-def get_dew_temperature23_pointA(_date, weather_data_A, weather_data_B):
-	""" 前日の23時における露点温度　地点A
+def get_dew_temperature_pointA(_date, hour, weather_data_A, weather_data_B):
+	""" 前日のhour時における露点温度　地点A
 	"""
 	_date -= datetime.timedelta(days=1)
-	_date += datetime.timedelta(hours=23)
+	_date += datetime.timedelta(hours=hour)
 	one_data = weather_data_A[_date]
 	if one_data == None:
 			return
 	temperature = one_data[index_A["露点温度"]]
 	return temperature
 
-def get_TTd23_pointA(_date, weather_data_A, weather_data_B):
-	""" 前日の23時における湿数　地点A
+def get_TTd_pointA(_date, hour, weather_data_A, weather_data_B):
+	""" 前日のhour時における湿数　地点A
 	"""
 	_date -= datetime.timedelta(days=1)
-	_date += datetime.timedelta(hours=23)
+	_date += datetime.timedelta(hours=hour)
 	one_data = weather_data_A[_date]
 	if one_data == None:
 			return
@@ -302,11 +288,11 @@ def get_TTd23_pointA(_date, weather_data_A, weather_data_B):
 	return TTd
 
 
-def get_vapor_pressure23_pointA(_date, weather_data_A, weather_data_B):
-	""" 前日の23時における蒸気圧　地点A
+def get_vapor_pressure_pointA(_date, hour, weather_data_A, weather_data_B):
+	""" 前日のhour時における蒸気圧　地点A
 	"""
 	_date -= datetime.timedelta(days=1)
-	_date += datetime.timedelta(hours=23)
+	_date += datetime.timedelta(hours=hour)
 	one_data = weather_data_A[_date]
 	if one_data == None:
 			return
@@ -314,16 +300,16 @@ def get_vapor_pressure23_pointA(_date, weather_data_A, weather_data_B):
 	return vapor_pressure
 
 
-def get_diff_air_pressure23_pointA(_date, weather_data_A, weather_data_B):
-	""" 前日の23時と前々日の23時における気圧差　地点A
+def get_diff_air_pressure_pointA(_date, hour, weather_data_A, weather_data_B):
+	""" 前日のhour時と前々日のhour時における気圧差　地点A
 	"""
 	_date -= datetime.timedelta(days=2)
-	_date += datetime.timedelta(hours=23)
+	_date += datetime.timedelta(hours=hour)
 	one_data = weather_data_A[_date]
 	if one_data == None:
 		return
 	pressure1 = one_data[index_A["現地気圧"]]
-	_date += datetime.timedelta(hours=24) # 24時間後=前日の23時
+	_date += datetime.timedelta(hours=24) # 24時間後=前日のhour時
 	one_data = weather_data_A[_date]
 	if one_data == None:
 		return
@@ -331,11 +317,11 @@ def get_diff_air_pressure23_pointA(_date, weather_data_A, weather_data_B):
 	return pressure1 - pressure2
 
 
-def get_bias_air_pressure23_pointA(_date, weather_data_A, weather_data_B):
-	""" 前日の23時における気圧の平均からのズレ　地点A
+def get_bias_air_pressure_pointA(_date, hour, weather_data_A, weather_data_B):
+	""" 前日のhour時における気圧の平均からのズレ　地点A
 	"""
 	time = _date - datetime.timedelta(days=30)
-	time += datetime.timedelta(hours=23)
+	time += datetime.timedelta(hours=hour)
 	p = []
 	while time < _date:
 		if not time in weather_data_A:
@@ -352,11 +338,11 @@ def get_bias_air_pressure23_pointA(_date, weather_data_A, weather_data_B):
 
 
 
-def get_humidity23_pointA(_date, weather_data_A, weather_data_B):
-	""" 前日の23時における湿度　地点A
+def get_humidity_pointA(_date, hour, weather_data_A, weather_data_B):
+	""" 前日のhour時における湿度　地点A
 	"""
 	_date -= datetime.timedelta(days=1)
-	_date += datetime.timedelta(hours=23)
+	_date += datetime.timedelta(hours=hour)
 	one_data = weather_data_A[_date]
 	if one_data == None:
 			return
@@ -365,7 +351,7 @@ def get_humidity23_pointA(_date, weather_data_A, weather_data_B):
 	pass
 
 
-def get_sight_range23_pointA(_date, weather_data_A, weather_data_B):
+def get_sight_range23_pointA(_date, hour, weather_data_A, weather_data_B):
 	""" 前日の23時における視程　地点A
 	"""
 	_date -= datetime.timedelta(days=1)
@@ -428,35 +414,67 @@ def read_weather_data(fpath, th):
 	return weather_dict
 
 
-def create_feature(_date, weather_data_A, weather_data_B):
+def create_feature23(_date, weather_data_A, weather_data_B):
 	""" 特徴ベクトルを作る
 	"""
 	print("feature of ", _date)
 	_feature = [
-		get_season(_date, weather_data_A, weather_data_B), \
-		get_temperature14_pointB(_date, weather_data_A, weather_data_B), \
-		get_temperature06_pointB(_date, weather_data_A, weather_data_B), \
-		get_average_temperature_3days_pointB(_date, weather_data_A, weather_data_B), \
-		get_rain_pointB(_date, weather_data_A, weather_data_B), \
-		get_sunshine_pointA(_date, weather_data_A, weather_data_B), \
-		get_temperature23_pointA(_date, weather_data_A, weather_data_B), \
-		get_temperature_diff23_pointAB(_date, weather_data_A, weather_data_B), \
-		get_temperature_diff18to23_pointA(_date, weather_data_A, weather_data_B), \
-		get_temperature_diff18to23_pointB(_date, weather_data_A, weather_data_B), \
-		get_temperature_diff06to14_pointA(_date, weather_data_A, weather_data_B), \
-		get_temperature_diff06to14_pointB(_date, weather_data_A, weather_data_B), \
-		get_wind23_pointB(_date, weather_data_A, weather_data_B), \
-		get_wind_direction_23_pointA(_date, weather_data_A, weather_data_B), \
-		get_wind_night_pointA(_date, weather_data_A, weather_data_B), \
-		get_dew_temperature23_pointA(_date, weather_data_A, weather_data_B), \
-		get_TTd23_pointA(_date, weather_data_A, weather_data_B), \
-		get_vapor_pressure23_pointA(_date, weather_data_A, weather_data_B), \
-		get_diff_air_pressure23_pointA(_date, weather_data_A, weather_data_B), \
-		get_bias_air_pressure23_pointA(_date, weather_data_A, weather_data_B), \
-		get_humidity23_pointA(_date, weather_data_A, weather_data_B) \
+		get_season(_date, None, weather_data_A, weather_data_B), \
+		get_temperature_pointB(_date, 14, weather_data_A, weather_data_B), \
+		get_temperature_pointB(_date, 6, weather_data_A, weather_data_B), \
+		get_average_temperature_3days_pointB(_date, None, weather_data_A, weather_data_B), \
+		get_rain_pointB(_date, None, weather_data_A, weather_data_B), \
+		get_sunshine_pointA(_date, None, weather_data_A, weather_data_B), \
+		get_temperature_pointA(_date, 23, weather_data_A, weather_data_B), \
+		get_temperature_diff_pointAB(_date, 23, weather_data_A, weather_data_B), \
+		get_temperature_diff18toX_pointA(_date, 23, weather_data_A, weather_data_B), \
+		get_temperature_diff18toX_pointB(_date, 23, weather_data_A, weather_data_B), \
+		get_temperature_diff06to14_pointA(_date, None, weather_data_A, weather_data_B), \
+		get_temperature_diff06to14_pointB(_date, None, weather_data_A, weather_data_B), \
+		get_wind_pointB(_date, 23, weather_data_A, weather_data_B), \
+		get_wind_direction_pointA(_date, 23, weather_data_A, weather_data_B), \
+		get_wind_night_pointA(_date, None, weather_data_A, weather_data_B), \
+		get_dew_temperature_pointA(_date, 23, weather_data_A, weather_data_B), \
+		get_TTd_pointA(_date, 23, weather_data_A, weather_data_B), \
+		get_vapor_pressure_pointA(_date, 23, weather_data_A, weather_data_B), \
+		get_diff_air_pressure_pointA(_date, 23, weather_data_A, weather_data_B), \
+		get_bias_air_pressure_pointA(_date, 23, weather_data_A, weather_data_B), \
+		get_humidity_pointA(_date, 23, weather_data_A, weather_data_B) \
 		#get_sight_range23_pointA(_date, weather_data_A, weather_data_B) \ # 視程は311移行に活発になった噴火で観測されなくなっている
 		]
 	#print("fuga")
 	return _feature
 
+
+
+def create_feature17(_date, weather_data_A, weather_data_B):
+	""" 特徴ベクトルを作る
+	"""
+	print("feature of ", _date)
+	_feature = [
+		get_season(_date, None, weather_data_A, weather_data_B), \
+		get_temperature_pointB(_date, 14, weather_data_A, weather_data_B), \
+		get_temperature_pointB(_date, 6, weather_data_A, weather_data_B), \
+		get_average_temperature_3days_pointB(_date, None, weather_data_A, weather_data_B), \
+		get_rain_pointB(_date, None, weather_data_A, weather_data_B), \
+		get_sunshine_pointA(_date, None, weather_data_A, weather_data_B), \
+		get_temperature_pointA(_date, 16, weather_data_A, weather_data_B), \
+		get_temperature_diff_pointAB(_date, 16, weather_data_A, weather_data_B), \
+		get_temperature_diff18toX_pointA(_date, 16, weather_data_A, weather_data_B), \
+		get_temperature_diff18toX_pointB(_date, 16, weather_data_A, weather_data_B), \
+		get_temperature_diff06to14_pointA(_date, None, weather_data_A, weather_data_B), \
+		get_temperature_diff06to14_pointB(_date, None, weather_data_A, weather_data_B), \
+		get_wind_pointB(_date, 16, weather_data_A, weather_data_B), \
+		get_wind_direction_pointA(_date, 16, weather_data_A, weather_data_B), \
+		get_wind_night_pointA(_date, None, weather_data_A, weather_data_B), \
+		get_dew_temperature_pointA(_date, 16, weather_data_A, weather_data_B), \
+		get_TTd_pointA(_date, 16, weather_data_A, weather_data_B), \
+		get_vapor_pressure_pointA(_date, 16, weather_data_A, weather_data_B), \
+		get_diff_air_pressure_pointA(_date, 16, weather_data_A, weather_data_B), \
+		get_bias_air_pressure_pointA(_date, 16, weather_data_A, weather_data_B), \
+		get_humidity_pointA(_date, 16, weather_data_A, weather_data_B) \
+		#get_sight_range23_pointA(_date, weather_data_A, weather_data_B) \ # 視程は311移行に活発になった噴火で観測されなくなっている
+		]
+	#print("fuga")
+	return _feature
 

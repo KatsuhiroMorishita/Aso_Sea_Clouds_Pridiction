@@ -53,8 +53,8 @@ def get_unkai_pre2(_date, unkai_list):
 
 
 # 気象データの読み込み
-weather_data_Aso = feature.read_weather_data("fusion_aso.csv", len(feature.index_A))
-weather_data_Otohime = feature.read_weather_data("fusion_asoOtohime.csv", len(feature.index_B))
+weather_data_Aso = feature.read_weather_data("amedas_aso.csv", len(feature.index_A))
+weather_data_Otohime = feature.read_weather_data("amedas_asoOtohime.csv", len(feature.index_B))
 #print(weather_data_Aso)
 #print(weather_data_Otohime)
 
@@ -81,7 +81,8 @@ for date_start, date_end in terms:
 	_date = date_start
 	while _date <= date_end:
 		#print(_date)
-		_feature = feature.create_feature(_date, weather_data_Aso, weather_data_Otohime)
+		#_feature = feature.create_feature23(_date, weather_data_Aso, weather_data_Otohime)
+		_feature = feature.create_feature17(_date, weather_data_Aso, weather_data_Otohime)
 		#print(_feature)
 		if _feature != None:
 			unkai_point = get_unkai(_date, unkai_date_list)# + get_unkai_pre1(_date, unkai_date_list) + get_unkai_pre2(_date, unkai_date_list)

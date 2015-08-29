@@ -21,7 +21,7 @@ date_end   = datetime.datetime(2015, 8, 24)
 clf = RandomForestRegressor()
 
 # 学習成果を読み出す
-with open('entry.pickle', 'rb') as f:
+with open('entry_temp.pickle', 'rb') as f:
 	clf = pickle.load(f)               # オブジェクト復元
 
 
@@ -37,7 +37,8 @@ results = []
 _date = date_start 
 while _date <= date_end:
 	#print(_date)
-	_feature = feature.create_feature(_date, weather_data_Aso, weather_data_Otohime)
+	#_feature = feature.create_feature23(_date, weather_data_Aso, weather_data_Otohime)
+	_feature = feature.create_feature17(_date, weather_data_Aso, weather_data_Otohime)
 	#print(_feature)
 	if _feature != None:
 		if not None in _feature:      # ランダムフォレスト自体は欠損に強いはずだが、欠損があるとエラーが出たので対策
@@ -48,7 +49,7 @@ while _date <= date_end:
 
 
 # 予測結果を保存
-with open("result.csv", "w") as fw:
+with open("result_temp.csv", "w") as fw:
 	for result in results:
 		_date, predict_result = result
 		for _ in range(1):            # 複数行出力できるようにしている
