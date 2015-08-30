@@ -82,7 +82,7 @@ for date_start, date_end in terms:
 	while _date <= date_end:
 		#print(_date)
 		#_feature = feature.create_feature23(_date, weather_data_Aso, weather_data_Otohime)
-		_feature = feature.create_feature17(_date, weather_data_Aso, weather_data_Otohime)
+		_feature = feature.create_feature16(_date, weather_data_Aso, weather_data_Otohime)
 		#print(_feature)
 		if _feature != None:
 			unkai_point = get_unkai(_date, unkai_date_list)# + get_unkai_pre1(_date, unkai_date_list) + get_unkai_pre2(_date, unkai_date_list)

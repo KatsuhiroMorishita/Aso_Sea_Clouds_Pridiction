@@ -38,7 +38,7 @@ _date = date_start
 while _date <= date_end:
 	#print(_date)
 	#_feature = feature.create_feature23(_date, weather_data_Aso, weather_data_Otohime)
-	_feature = feature.create_feature17(_date, weather_data_Aso, weather_data_Otohime)
+	_feature = feature.create_feature16(_date, weather_data_Aso, weather_data_Otohime)
 	#print(_feature)
 	if _feature != None:
 		if not None in _feature:      # ランダムフォレスト自体は欠損に強いはずだが、欠損があるとエラーが出たので対策

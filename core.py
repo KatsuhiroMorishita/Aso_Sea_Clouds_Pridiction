@@ -236,8 +236,8 @@ def main():
 	# 学習成果を読み出す
 	now = dt.now()
 	#now = dt(year=now.year, month=now.month, day=now.day, hour=23, minute=30) # テスト用
-	if 23 > now.hour >= 17:
-		with open('entry_17.pickle', 'rb') as f:
+	if 23 > now.hour >= 16:
+		with open('entry_16.pickle', 'rb') as f:
 			clf = pickle.load(f)               # オブジェクト復元
 	elif now.hour >= 23:
 		with open('entry_23.pickle', 'rb') as f:
@@ -271,8 +271,8 @@ def main():
 
 	# 特徴ベクトルを生成
 	_feature = None
-	if 23 > now.hour >= 17:
-		_feature = feature.create_feature17(_date, weather_data_Aso, weather_data_Otohime)
+	if 23 > now.hour >= 16:
+		_feature = feature.create_feature16(_date, weather_data_Aso, weather_data_Otohime)
 	elif now.hour >= 23:
 		_feature = feature.create_feature23(_date, weather_data_Aso, weather_data_Otohime)
 	else:

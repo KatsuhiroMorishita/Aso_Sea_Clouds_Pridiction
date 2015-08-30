@@ -43,7 +43,7 @@ done = False
 while True:
 	date = dt.now()
 	print(date, "checking now...")
-	if done == False:# and date.hour == 23 and 59 > date.minute > 20:
+	if done == False and (date.hour == 23 or date.hour == 16) and 59 > date.minute > 20:
 		print("--call core main--")
 		result = core.main()
 		done = True
@@ -51,7 +51,7 @@ while True:
 		print(msg)
 		post_tweet(msg)
 		print("--done--")
-	if date.hour == 0:
+	if date.hour == 0 or date.hour == 17:
 		print("--ready--")
 		done = False
 	time.sleep(60)

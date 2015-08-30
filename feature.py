@@ -37,6 +37,7 @@ def get_temperature_pointB(_date, hour, weather_data_A, weather_data_B):
 
 def get_average_temperature_3days_pointB(_date, hour, weather_data_A, weather_data_B):
 	""" 3日間の平均気温　地点B
+	集計の仕方が不味いと思うが、まぁ動いているからいいや。
 	"""
 	__date = _date - datetime.timedelta(days=3)
 	temperature = []
@@ -447,7 +448,7 @@ def create_feature23(_date, weather_data_A, weather_data_B):
 
 
 
-def create_feature17(_date, weather_data_A, weather_data_B):
+def create_feature16(_date, weather_data_A, weather_data_B):
 	""" 特徴ベクトルを作る
 	"""
 	print("feature of ", _date)
