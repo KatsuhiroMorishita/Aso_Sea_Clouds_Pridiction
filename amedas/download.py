@@ -16,7 +16,7 @@ from datetime import timedelta as td
 
 
 start_date = dt(2015,8,1) # 書き込んでいる日付けはテキトー
-end_date = dt(2015,8,2)
+end_date = dt(2015,8,24)
 
 
 def create_dir(path_list):
@@ -95,7 +95,6 @@ class amedas_node:
 
 def get_amedas_nodes():
 	""" アメダス観測所の観測データへアクセスする辞書オブジェクトを返す
-	他のスクリプトから呼び出されても動作するのか？
 	"""
 	# 過去の観測データの入手に必要なアメダスのノード情報をファイルから読み取る
 	names1 = set() # 観測所名の一致チェック用
@@ -183,7 +182,7 @@ def main():
 		start_date = dt.now()
 		end_date = start_date
 
-	# 処理対象期間と観測所の情報を取得する
+	# 観測データをダウンロードして保存する
 	t = start_date
 	while t <= end_date:
 		for name in target:

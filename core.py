@@ -239,12 +239,10 @@ def main():
 	if 23 > now.hour >= 16:
 		with open('entry_16.pickle', 'rb') as f:
 			clf = pickle.load(f)               # オブジェクト復元
-	elif now.hour >= 23:
+	else:
 		with open('entry_23.pickle', 'rb') as f:
 			clf = pickle.load(f)               # オブジェクト復元
-	else:
-		print("--NA now.--")
-		exit()
+
 
 	# アメダスの観測所オブジェクトを作成
 	amedas_nodes = amd.get_amedas_nodes()
@@ -273,11 +271,8 @@ def main():
 	_feature = None
 	if 23 > now.hour >= 16:
 		_feature = feature.create_feature16(_date, weather_data_Aso, weather_data_Otohime)
-	elif now.hour >= 23:
-		_feature = feature.create_feature23(_date, weather_data_Aso, weather_data_Otohime)
 	else:
-		print("--NA now.--")
-		exit()
+		_feature = feature.create_feature23(_date, weather_data_Aso, weather_data_Otohime)
 	print(_feature)
 
 	# 予測を実施

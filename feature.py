@@ -243,11 +243,11 @@ def get_wind_direction_pointA(_date, hour, weather_data_A, weather_data_B):
 		return None
 
 def get_wind_night_pointA(_date, hour, weather_data_A, weather_data_B):
-	""" 前日の21-23時における風速　地点A
+	""" 前日の(hour-2)-hour時における風速　地点A
 	"""
 	_date -= datetime.timedelta(days=1)
-	time = _date + datetime.timedelta(hours=21)
-	time_end = _date + datetime.timedelta(hours=23)
+	time = _date + datetime.timedelta(hours=hour-2)
+	time_end = _date + datetime.timedelta(hours=hour)
 	wind = []
 	while time <= time_end:
 		one_data = weather_data_A[time]
@@ -434,7 +434,7 @@ def create_feature23(_date, weather_data_A, weather_data_B):
 		get_temperature_diff06to14_pointB(_date, None, weather_data_A, weather_data_B), \
 		get_wind_pointB(_date, 23, weather_data_A, weather_data_B), \
 		get_wind_direction_pointA(_date, 23, weather_data_A, weather_data_B), \
-		get_wind_night_pointA(_date, None, weather_data_A, weather_data_B), \
+		get_wind_night_pointA(_date, 23, weather_data_A, weather_data_B), \
 		get_dew_temperature_pointA(_date, 23, weather_data_A, weather_data_B), \
 		get_TTd_pointA(_date, 23, weather_data_A, weather_data_B), \
 		get_vapor_pressure_pointA(_date, 23, weather_data_A, weather_data_B), \
@@ -461,13 +461,11 @@ def create_feature16(_date, weather_data_A, weather_data_B):
 		get_sunshine_pointA(_date, None, weather_data_A, weather_data_B), \
 		get_temperature_pointA(_date, 16, weather_data_A, weather_data_B), \
 		get_temperature_diff_pointAB(_date, 16, weather_data_A, weather_data_B), \
-		get_temperature_diff18toX_pointA(_date, 16, weather_data_A, weather_data_B), \
-		get_temperature_diff18toX_pointB(_date, 16, weather_data_A, weather_data_B), \
 		get_temperature_diff06to14_pointA(_date, None, weather_data_A, weather_data_B), \
 		get_temperature_diff06to14_pointB(_date, None, weather_data_A, weather_data_B), \
 		get_wind_pointB(_date, 16, weather_data_A, weather_data_B), \
 		get_wind_direction_pointA(_date, 16, weather_data_A, weather_data_B), \
-		get_wind_night_pointA(_date, None, weather_data_A, weather_data_B), \
+		get_wind_night_pointA(_date, 16, weather_data_A, weather_data_B), \
 		get_dew_temperature_pointA(_date, 16, weather_data_A, weather_data_B), \
 		get_TTd_pointA(_date, 16, weather_data_A, weather_data_B), \
 		get_vapor_pressure_pointA(_date, 16, weather_data_A, weather_data_B), \
