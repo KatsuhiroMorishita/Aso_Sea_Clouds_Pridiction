@@ -281,11 +281,10 @@ def main():
 	if _feature != None:
 		if not None in _feature:  # ランダムフォレスト自体は欠損に強いはずだが、欠損があるとエラーが出たので対策
 			test = clf.predict(_feature)
-			results.append((_date, test[0]))
+			results.append((_date, test[0], _feature))
 			print(test)
 			done = True
 	if done == False:
-		
 		results.append((_date, "NA", _feature))
 		print("--can't predict. There is None data in feature-vector.--")
 
