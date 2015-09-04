@@ -285,19 +285,25 @@ def main():
 			print(test)
 			done = True
 	if done == False:
-		results.append((_date, "NA"))
+		
+		results.append((_date, "NA", _feature))
 		print("--can't predict. There is None data in feature-vector.--")
 
 
 	# 予測結果を保存
 	with open("result.csv", "w") as fw:
 		for result in results:
-			_date, predict_result = result
+			_date, predict_result, _feature = result
+			str_feature = [str(x) for x in _feature]
 			fw.write(str(dt.now()))
 			fw.write(",")
 			fw.write(str(_date))
 			fw.write(",")
 			fw.write(str(predict_result))
+			fw.write(",")
+			fw.write("$")
+			fw.write(",")
+			fw.write(",".join(str_feature))
 			fw.write("\n")
 
 	return results
