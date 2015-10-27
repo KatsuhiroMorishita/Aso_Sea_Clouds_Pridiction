@@ -34,7 +34,7 @@ def resolve(txt_bytes):
 
 
 
-def get_amedas_data_typeA(node_obj):
+def get_amedas_data_typeB(node_obj):
 	lines = []
 	# 過去データを入手
 	for i in range(1, days):
@@ -91,7 +91,7 @@ def get_amedas_data_typeA(node_obj):
 
 
 
-def get_amedas_data_typeB(node_obj):
+def get_amedas_data_typeA(node_obj):
 	lines = []
 	# 過去のデータを入手
 	for i in range(1, days):
@@ -176,7 +176,7 @@ def get_amedas_data_typeB(node_obj):
 	# 露点温度を計算する
 	def GofGra(t):
 		""" 気温から飽和水蒸気量を求める
-		氷点下では別の近似式を使ったほうがいいらしい。
+		氷点下では別の近似式を使った方が良いらしい。
 		http://d.hatena.ne.jp/Rion778/20121126/1353861179
 		tの単位：℃
 		"""
@@ -221,12 +221,15 @@ def get_amedas_data_typeB(node_obj):
 
 def get_amedas_data(node_obj):
 	""" アメダスの観測データを返す
+	自動的に判別できればいいのだけど・・・できるかな？
 	"""
 	if node_obj.name == "阿蘇山":
-		return get_amedas_data_typeB(node_obj)
-	if node_obj.name == "阿蘇乙姫":
 		return get_amedas_data_typeA(node_obj)
-
+	if node_obj.name == "熊本":
+		return get_amedas_data_typeA(node_obj)
+	if node_obj.name == "阿蘇乙姫":
+		return get_amedas_data_typeB(node_obj)
+	
 
 
 def main():
@@ -248,7 +251,8 @@ def main():
 	amedas_nodes = amd.get_amedas_nodes()
 	#print(amedas_nodes)
 	# 観測データを読み出す
-	aso_node = amedas_nodes["阿蘇山"]
+	#aso_node = amedas_nodes["阿蘇山"]
+	aso_node = amedas_nodes["熊本"]        # 噴火で阿蘇山頂のデータが得られないので、緊急的に熊本に差し替え
 	aso_lines = get_amedas_data(aso_node)
 	otohime_node = amedas_nodes["阿蘇乙姫"]
 	otohime_lines = get_amedas_data(otohime_node)

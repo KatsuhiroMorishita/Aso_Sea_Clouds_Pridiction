@@ -183,11 +183,13 @@ def get_temperature_diff06to14_pointA(_date, hour, weather_data_A, weather_data_
 	time2 = _date + datetime.timedelta(hours=14)
 	one_data = weather_data_A[time1]
 	if one_data == None:
-			return
+		#print("--fuga--")
+		return
 	temperature_1 = one_data[index_A["気温"]]
 	one_data = weather_data_A[time2]
 	if one_data == None:
-			return
+		#print("--hoge--")
+		return
 	temperature_2 = one_data[index_A["気温"]]
 	if temperature_1 != None and temperature_2 != None:
 		return temperature_1 - temperature_2
@@ -315,27 +317,45 @@ def get_diff_air_pressure_pointA(_date, hour, weather_data_A, weather_data_B):
 	if one_data == None:
 		return
 	pressure2 = one_data[index_A["現地気圧"]]
+	if pressure1 == None or pressure2 == None:
+		return
 	return pressure1 - pressure2
 
 
 def get_bias_air_pressure_pointA(_date, hour, weather_data_A, weather_data_B):
 	""" 前日のhour時における気圧の平均からのズレ　地点A
 	"""
+	#print("--debug msg, get_bias_air_pressure_pointA--")
 	time = _date - datetime.timedelta(days=30)
 	time += datetime.timedelta(hours=hour)
+	#print(weather_data_A)
+	keys = sorted(weather_data_A.keys())
+	#print(keys)
+	#for i in range(100):
+	#	key = keys[i]
+	#	print(weather_data_A[key])
+	#exit()
 	p = []
 	while time < _date:
+		#print("--")
 		if not time in weather_data_A:
 			time += datetime.timedelta(days=1)
+			#print("A")
 			continue
+		#print(time)
 		one_data = weather_data_A[time]
 		if one_data == None:
 			time += datetime.timedelta(days=1)
+			#print("B")
 			continue
-		p.append(one_data[index_A["現地気圧"]])
+		pressure = one_data[index_A["現地気圧"]]
+		if pressure != None:               # 未観測ってことはたまにあるようだが、せっかくの学習データを減らしたくない
+			p.append(pressure)
 		time += datetime.timedelta(days=1)
-	average_p = sum(p) / float(len(p))
-	return p[-1] - average_p
+	if len(p) < 5:                        # 数はテキトー
+		return
+	average_p = sum(p) / float(len(p))     # pの中にNoneが入っているとエラー
+	return p[-1] - average_p               # 何もなければ、p[-1]は_dateの前日のhour時の観測データが入っている。もしかするとNoneで随分離れた時刻ってこともあるかもしれないが・・・。笑
 
 
 
@@ -373,6 +393,7 @@ def get_weather_dict(lines, th):
 	"""
 	weather_dict = {}
 	for line in lines:
+		#print(line)
 		line = line.rstrip()
 		if "時" in line:
 			continue
@@ -382,13 +403,17 @@ def get_weather_dict(lines, th):
 		field = field[1:]
 		new_field = []
 		for mem in field:
+			#print(mem)
 			fuga = mem.replace(".", "")
 			fuga = fuga.replace(" )", "")          # 観測上のおかしなデータにくっつく記号
 			if len(fuga) > 0:
 				if "-" == fuga[0]:
 					fuga = fuga[1:]
+			fuga = fuga.replace("-", "")           # -10, 10-　みたいなパターン。数値の前のマイナス符号があれば負値。
 			if fuga.isdigit() == True:
 				mem = mem.replace(" )", "")
+				if "-" == mem[-1]:                 # 10-　みたいなパターンへの対応
+					mem = mem[:-1]
 				new_field.append(float(mem))
 			else:
 				if mem == "":
@@ -397,6 +422,8 @@ def get_weather_dict(lines, th):
 					new_field.append(None)
 				else:
 					new_field.append(mem)
+		#exit()
+		#print(new_field)
 		if len(new_field) >= th:
 			weather_dict[t] = new_field
 		else:

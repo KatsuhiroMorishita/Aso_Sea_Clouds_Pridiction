@@ -11,28 +11,44 @@
 import pandas
 from sklearn.ensemble import RandomForestRegressor as ml
 
-# 学習に必要な教師データを読み出す
-data = pandas.read_csv("teaching_data.csv", na_values='None')
-data = data.dropna()
 
-#print(data)
-trainFeature = (data.iloc[:, 1:-1]).values # transform to ndarray
-trainLabel = (data.iloc[:, -1:]).values
-trainLabel = [flatten for inner in trainLabel for flatten in inner] # transform 2次元 to 1次元 ぽいこと
-#print(trainLabel)
+def read_training_data(teaching_file_path):
+	# 学習に必要な教師データを読み出す
+	data = pandas.read_csv(teaching_file_path, na_values='None')
+	data = data.dropna()
 
-# 学習実行
-clf = ml(max_features="auto")#, max_depth=7)
-clf.fit(trainFeature, trainLabel)
+	#print(data)
+	features = (data.iloc[:, 1:-1]).values # transform to ndarray
+	labels = (data.iloc[:, -1:]).values
+	labels = [flatten for inner in labels for flatten in inner] # transform 2次元 to 1次元 ぽいこと
+	#print(labels)
+	return (features, labels)
 
-# 学習成果を保存
-import pickle
-with open('entry_temp.pickle', 'wb') as f:
-	pickle.dump(clf, f)
 
-# 学習結果を確認
-test = clf.predict(trainFeature[2])             # 試しに一つ確認
-print(test)
-result = clf.score(trainFeature, trainLabel)	# 学習データに対する、適合率
-print(result)
-print(clf.feature_importances_)	                # 各特徴量に対する寄与度を求める
+def learn(teaching_data, save_file_path):
+	# 学習実行
+	trainFeature, trainLabel = teaching_data
+	clf = ml(max_features="auto")#, max_depth=7)
+	clf.fit(trainFeature, trainLabel)
+
+	# 学習成果を保存
+	import pickle
+	with open(save_file_path, 'wb') as f:
+		pickle.dump(clf, f)
+
+	# 学習結果を確認のために表示
+	test = clf.predict(trainFeature[2])             # 試しに一つ確認
+	print(test)
+	result = clf.score(trainFeature, trainLabel)	# 学習データに対する、適合率
+	print(result)
+	print(clf.feature_importances_)	                # 各特徴量に対する寄与度を求める
+
+	return clf
+
+
+def main():
+	training_data = read_training_data("teaching_data.csv")
+	learn(training_data, 'entry_temp.pickle')
+
+if __name__ == '__main__':
+	main()
