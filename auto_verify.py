@@ -16,8 +16,8 @@ import feature
 import create_learning_data
 import timeKM
 
-feature_func = feature.create_feature16
-try_times = 10000
+feature_func = feature.create_feature23
+try_times = 1500
 
 def main():
 	# 引数の処理

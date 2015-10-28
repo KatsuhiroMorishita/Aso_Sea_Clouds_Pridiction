@@ -471,6 +471,7 @@ def create_feature23(_date, weather_data_A, weather_data_B):
 		#get_sight_range23_pointA(_date, weather_data_A, weather_data_B) \ # 視程は311移行に活発になった噴火で観測されなくなっている
 		]
 	#print("fuga")
+	_feature = [-99999 if x == None else x for x in _feature]
 	return _feature
 
 
@@ -502,5 +503,6 @@ def create_feature16(_date, weather_data_A, weather_data_B):
 		#get_sight_range23_pointA(_date, weather_data_A, weather_data_B) \ # 視程は311移行に活発になった噴火で観測されなくなっている
 		]
 	#print("fuga")
+	_feature = [-99999 if x == None else x for x in _feature]
 	return _feature
 
