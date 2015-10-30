@@ -31,6 +31,7 @@ def main():
 	# アメダスの観測データを読みだす
 	weather_data_A = feature.read_weather_data("amedas_aso.csv", len(feature.index_A))
 	weather_data_B = feature.read_weather_data("amedas_asoOtohime.csv", len(feature.index_B))
+	raw_data = [weather_data_A, weather_data_B]
 
 	# 正解データを取得する
 	correct_result = {}
@@ -44,10 +45,9 @@ def main():
 				value = float(value)
 			correct_result[date] = value
 
-	# 教師データ作成
+	# 教師データ作成の準備
 	terms = [(dt(2005, 3, 10), dt(2013, 8, 1)), (dt(2015, 6, 23), dt(2015, 8, 24))]
-	fname = create_learning_data.create(weather_data_A, weather_data_B, feature_func, terms)
-	training_data = learning.read_training_data(fname)
+	tc = create_learning_data.teachrer_creator(raw_data, feature_func, terms) # 一度メモリ内に教師データを作成するが、時間がかかる。
 
 	# 学習とその検証を繰り返して、結果をファイルに保存する
 	with open("verify_report" + tag_name + ".csv", "w") as fw:
@@ -56,8 +56,12 @@ def main():
 		end_date = dates[-1]
 		for i in range(try_times):
 			print("--try count: {0}/{1}--".format(i, try_times))
+			# 教師データを作成
+			fname = tc.save_teacher()
+			training_data = learning.read_training_data(fname)
+			# 学習
 			clf = learning.learn(training_data, 'entry_temp{0}_{1:05d}.pickle'.format(tag_name, i))
-			result = predict.predict(clf, start_date, end_date, feature_func, weather_data_A, weather_data_B)    # 渡す特徴ベクトル生成関数は状況に合わせる
+			result = predict.predict(clf, start_date, end_date, feature_func, raw_data)    # 渡す特徴ベクトル生成関数は状況に合わせる
 			# 結果の集計
 			scale = 10
 			zero = [0.0] * scale

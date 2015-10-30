@@ -15,14 +15,13 @@ import feature
 
 
 
-def predict(clf, date_start, date_end, feature_generation_func, wether_data_A, wether_data_B):
+def predict(clf, date_start, date_end, feature_generation_func, raw_data):
 	# 日付けをズラしながら、予想結果をストア
 	results = {}
 	_date = date_start 
 	while _date <= date_end:
 		#print(_date)
-		_feature = feature_generation_func(_date, wether_data_A, wether_data_B)
-		#_feature = feature.create_feature16(_date, wether_data_A, wether_data_B)
+		_feature = feature_generation_func(_date, raw_data)
 		#print(_feature)
 		if _feature != None:
 			if not None in _feature:      # ランダムフォレスト自体は欠損に強いはずだが、欠損があるとエラーが出たので対策
@@ -65,14 +64,14 @@ def main():
 	weather_data_Otohime = feature.read_weather_data("amedas_asoOtohime.csv", len(feature.index_B))
 	#print(weather_data_Aso)
 	#print(weather_data_Otohime)
+	raw_data = [weather_data_Aso, weather_data_Otohime]
 
 	predict(\
 		clf, \
 		datetime.datetime(2015, 6, 23), \
 		datetime.datetime(2015, 10, 24), \
 		feature.create_feature23, \
-		weather_data_Aso, \
-		weather_data_Otohime\
+		raw_data\
 		)
 
 if __name__ == '__main__':

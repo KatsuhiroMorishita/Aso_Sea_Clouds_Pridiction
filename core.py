@@ -257,8 +257,9 @@ def main():
 	otohime_node = amedas_nodes["阿蘇乙姫"]
 	otohime_lines = get_amedas_data(otohime_node)
 	# 観測データを処理して、特徴量の生成に適したオブジェクトに変更
-	weather_data_Aso = feature.get_weather_dict(aso_lines, len(feature.index_A))
-	weather_data_Otohime = feature.get_weather_dict(otohime_lines, len(feature.index_B))
+	weather_data_A = feature.get_weather_dict(aso_lines, len(feature.index_A))
+	weather_data_B = feature.get_weather_dict(otohime_lines, len(feature.index_B))
+	raw_data = [weather_data_A, weather_data_B]
 	#print(weather_data_Aso)
 	#print(weather_data_Otohime)
 
@@ -274,9 +275,9 @@ def main():
 	# 特徴ベクトルを生成
 	_feature = None
 	if 23 > now.hour >= 16:
-		_feature = feature.create_feature16(_date, weather_data_Aso, weather_data_Otohime)
+		_feature = feature.create_feature16(_date, raw_data)
 	else:
-		_feature = feature.create_feature23(_date, weather_data_Aso, weather_data_Otohime)
+		_feature = feature.create_feature23(_date, raw_data)
 	print(_feature)
 
 	# 予測を実施
