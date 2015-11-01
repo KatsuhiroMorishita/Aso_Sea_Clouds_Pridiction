@@ -28,6 +28,7 @@ while True:
 		now = dt.now()
 		if t <= now:
 			print("--try download--")
+			print(str(now))
 			url = "http://www.jma.go.jp/jp/week/"
 			try:
 				fetched_dataframes = pandas.io.html.read_html(url) # download
@@ -42,7 +43,7 @@ while True:
 				print("--error--")
 				print(str(e))
 			_next[i] = t + td(days=1)
-	print(_next)
+			print(_next)
 	time.sleep(60)
 
 

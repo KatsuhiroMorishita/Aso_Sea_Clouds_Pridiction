@@ -233,12 +233,12 @@ def get_diff_air_pressure(_date, hour, raw_data):
 	return pressure1 - pressure2
 
 
-def get_bias_air_pressure(_date, hour, raw_data):
+def get_bias_air_pressure(_date, hour, raw_data, term_days=6):
 	""" 前日のhour時における気圧の平均からのズレ
 	"""
 	weather_data, _index = raw_data
 	#print("--debug msg, get_bias_air_pressure_pointA--")
-	time = _date - datetime.timedelta(days=30)
+	time = _date - datetime.timedelta(days=term_days)
 	time += datetime.timedelta(hours=hour)
 	#print(weather_data)
 	keys = sorted(weather_data.keys())
@@ -387,10 +387,11 @@ def create_feature23(_date, raw_data):
 		get_diff_air_pressure(_date, 23, [weather_data_A, index_A]), \
 		get_bias_air_pressure(_date, 23, [weather_data_A, index_A]), \
 		get_measurement_value(_date, 23, [weather_data_A, index_A], "湿度"), \
-		# 視程は311移行に活発になった噴火で観測されなくなっている
+		get_measurement_value(_date, 21, [weather_data_A, index_A], "視程"), \
 		]
 	#print("fuga")
 	_feature = [-99999 if x == None else x for x in _feature] # 欠損値を-99999に置換
+	#print(_feature)
 	return _feature
 
 
@@ -420,9 +421,10 @@ def create_feature16(_date, raw_data):
 		get_diff_air_pressure(_date, 16, [weather_data_A, index_A]), \
 		get_bias_air_pressure(_date, 16, [weather_data_A, index_A]), \
 		get_measurement_value(_date, 16, [weather_data_A, index_A], "湿度"), \
-		# 視程は311移行に活発になった噴火で観測されなくなっている
+		get_measurement_value(_date, 15, [weather_data_A, index_A], "視程"), \
 		]
 	#print("fuga")
 	_feature = [-99999 if x == None else x for x in _feature] # 欠損値を-99999に置換
+	#print(_feature)
 	return _feature
 

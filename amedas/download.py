@@ -192,7 +192,7 @@ def main():
 		for name in target:
 			node = amedas_nodes[name]
 			node.save(_type, t)
-			time.sleep(0.2)
+			time.sleep(0.5)
 		t += td(days=1)
 
 

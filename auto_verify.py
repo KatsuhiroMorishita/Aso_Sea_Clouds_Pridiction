@@ -16,37 +16,11 @@ import feature
 import create_learning_data
 import timeKM
 
-feature_func = feature.create_feature23
-try_times = 1500
 
-def main():
-	# 引数の処理
-	tag_name = ""     # 保存するファイル名にタグを付けることができる
-	argvs = sys.argv  # コマンドライン引数を格納したリストの取得
-	print(argvs)
-	argc = len(argvs) # 引数の個数
-	if argc > 1:
-		tag_name = "_" + argvs[1]
+try_times = 2000
 
-	# アメダスの観測データを読みだす
-	raw_data = feature.read_raw_data()
 
-	# 検証用の正解データを取得する
-	correct_result = {}
-	with open("correct_result.csv", "r") as fr:
-		lines = fr.readlines()
-		for line in lines:
-			line = line.rstrip()
-			date, value = line.split(",")
-			date = timeKM.getTime(date + " 0:0:0")
-			if value.isdigit():
-				value = float(value)
-			correct_result[date] = value
-
-	# 教師データ作成の準備
-	terms = [(dt(2005, 3, 10), dt(2013, 8, 1)), (dt(2015, 6, 23), dt(2015, 8, 24))]
-	tc = create_learning_data.teacher_creator(raw_data, feature_func, terms) # 一度メモリ内に教師データを作成するが、時間がかかる。
-
+def process(tag_name, correct_result, tc, feature_func, raw_data):
 	# 学習とその検証を繰り返して、結果をファイルに保存する
 	with open("verify_report" + tag_name + ".csv", "w") as fw:
 		dates = sorted(correct_result.keys())
@@ -84,6 +58,41 @@ def main():
 			fw.write(",,") # Excelで閲覧した時に分離させる
 			fw.write(",".join(one))
 			fw.write("\n")
+
+def main():
+	# 引数の処理
+	tag_name = ""     # 保存するファイル名にタグを付けることができる
+	argvs = sys.argv  # コマンドライン引数を格納したリストの取得
+	print(argvs)
+	argc = len(argvs) # 引数の個数
+	if argc > 1:
+		tag_name = "_" + argvs[1]
+
+	# アメダスの観測データを読みだす
+	raw_data = feature.read_raw_data()
+
+	# 検証用の正解データを取得する
+	correct_result = {}
+	with open("correct_result.csv", "r") as fr:
+		lines = fr.readlines()
+		for line in lines:
+			line = line.rstrip()
+			date, value = line.split(",")
+			date = timeKM.getTime(date + " 0:0:0")
+			if value.isdigit():
+				value = float(value)
+			correct_result[date] = value
+
+	# 教師データ作成の準備
+	terms = [(dt(2005, 3, 10), dt(2013, 8, 1)), (dt(2015, 6, 23), dt(2015, 8, 24))]
+
+	feature_func = feature.create_feature16
+	tc = create_learning_data.teacher_creator(raw_data, feature_func, terms) # 一度メモリ内に教師データを作成するが、時間がかかる。
+	process(tag_name + "_f16", correct_result, tc, feature_func, raw_data)
+
+	feature_func = feature.create_feature23
+	tc = create_learning_data.teacher_creator(raw_data, feature_func, terms)
+	process(tag_name + "_f23", correct_result, tc, feature_func, raw_data)
 
 
 if __name__ == '__main__':

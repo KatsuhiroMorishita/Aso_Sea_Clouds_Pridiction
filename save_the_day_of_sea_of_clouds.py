@@ -11,7 +11,7 @@
 import sqlite3
 
 print("-テーブル名の取得-")
-con = sqlite3.connect("development.sqlite3")
+con = sqlite3.connect("production.sqlite3")
 cur = con.cursor()
 cur.execute("select name from sqlite_master where type='table'")
 for catalog in cur.fetchall():
