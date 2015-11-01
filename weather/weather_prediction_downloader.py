@@ -19,10 +19,11 @@ for mem in hours:
 	if t < dt.now():
 		t += td(days=1)
 	_next.append(t)
+print(_next)
 
 
+_hash = None
 while True:
-	_hash = None
 	for i in range(len(_next)):
 		t = _next[i]
 		now = dt.now()
