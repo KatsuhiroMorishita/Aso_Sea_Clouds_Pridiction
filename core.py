@@ -52,6 +52,9 @@ def get_passed_amedas_data(node_obj, date, term):
 			continue
 		print(_date)
 		html_bytes = node_obj.get_data(_type="hourly", date=_date)
+		if html_bytes == None:
+			print("--can't download--")
+			continue
 		html_lines = resolve(html_bytes)
 		data = amp.get_data(html_lines, _date)
 		#print(data)
@@ -244,8 +247,8 @@ def get_amedas_data(node_obj, date):
 def main():
 	# 予想したい日の日付けを設定
 	target_date = None
-	_day = dt.now()         # まずはコマンドライン引数による指定がない場合を想定
-	if _day.hour >= 10:     # この時刻を過ぎると、翌日の予想を実施する
+	_day = dt.now()        # まずはコマンドライン引数による指定がない場合を想定
+	if _day.hour >= 10:    # この時刻を過ぎると、翌日の予想を実施する
 		_day += td(days=1)
 	target_date = dt(year=_day.year, month=_day.month, day=_day.day)
 
@@ -272,13 +275,13 @@ def main():
 	#print(amedas_nodes)
 	# 観測データを読み出す
 	#node_A = amedas_nodes["阿蘇山"]
-	node_A = amedas_nodes["熊本"]        # 噴火で阿蘇山頂のデータが得られないので、緊急的に熊本に差し替え
+	node_A = amedas_nodes["熊本"]        # 2015-09の噴火で阿蘇山頂のデータが得られないので、熊本に差し替え
 	lines_A = get_amedas_data(node_A, target_date)
 	node_B = amedas_nodes["阿蘇乙姫"]
 	lines_B = get_amedas_data(node_B, target_date)
 	# 観測データを処理して、特徴量の生成に適したオブジェクトに変更
-	weather_data_A = feature.get_weather_dict(lines_A, len(feature.index_A))
-	weather_data_B = feature.get_weather_dict(lines_B, len(feature.index_B))
+	weather_data_A = feature.get_weather_dict(lines_A)
+	weather_data_B = feature.get_weather_dict(lines_B)
 	raw_data = [weather_data_A, weather_data_B]
 	#print(weather_data_Aso)
 	#print(weather_data_Otohime)
@@ -309,7 +312,7 @@ def main():
 	done = False
 	results = []
 	if _feature != None:
-		if not None in _feature:  # ランダムフォレスト自体は欠損に強いはずだが、欠損があるとエラーが出たので対策
+		if not None in _feature:  # Noneがあると計算出来ない
 			test = clf.predict(_feature)
 			results.append((target_date, test[0], _feature))
 			print(test)

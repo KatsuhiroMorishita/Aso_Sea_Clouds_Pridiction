@@ -7,7 +7,6 @@
 # created: 2015-08-08
 # lisence: MIT
 #----------------------------------------
-#地点A　阿蘇山頂, 地点B　阿蘇乙姫
 import datetime
 from datetime import datetime as dt
 from datetime import timedelta as td
@@ -50,7 +49,7 @@ def get_unkai_pre2(_date, unkai_list):
 
 
 
-class  teachrer_creator():
+class  teacher_creator():
 	def __init__(self, raw_data, feature_generation_func, terms):
 		""" 
 		arg:
@@ -133,20 +132,16 @@ class  teachrer_creator():
 
 def main():
 	# 気象データの読み込み
-	weather_data_Aso = feature.read_weather_data("amedas_aso.csv", len(feature.index_A))
-	weather_data_Otohime = feature.read_weather_data("amedas_asoOtohime.csv", len(feature.index_B))
-	#print(weather_data_Aso)
-	#print(weather_data_Otohime)
-	raw_data = [weather_data_Aso, weather_data_Otohime]
+	raw_data = feature.read_raw_data()
 
 	# 処理の対象期間（過去のデータに加えて、最新の観測データも加えるので、タプルで期間を指定する）
 	terms = [(dt(2005, 3, 10), dt(2013, 8, 1)), (dt(2015, 6, 23), dt(2015, 8, 24))]
 
 	# 特徴ベクトルを作成する関数
-	feature_func = feature.create_feature23
+	feature_func = feature.create_feature16
 
 	# 特徴ベクトルを作成して保存
-	tc = teachrer_creator(raw_data, feature_func, terms)
+	tc = teacher_creator(raw_data, feature_func, terms)
 	tc.save_teacher()
 
 

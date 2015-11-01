@@ -29,11 +29,9 @@ def main():
 		tag_name = "_" + argvs[1]
 
 	# アメダスの観測データを読みだす
-	weather_data_A = feature.read_weather_data("amedas_aso.csv", len(feature.index_A))
-	weather_data_B = feature.read_weather_data("amedas_asoOtohime.csv", len(feature.index_B))
-	raw_data = [weather_data_A, weather_data_B]
+	raw_data = feature.read_raw_data()
 
-	# 正解データを取得する
+	# 検証用の正解データを取得する
 	correct_result = {}
 	with open("correct_result.csv", "r") as fr:
 		lines = fr.readlines()
@@ -47,7 +45,7 @@ def main():
 
 	# 教師データ作成の準備
 	terms = [(dt(2005, 3, 10), dt(2013, 8, 1)), (dt(2015, 6, 23), dt(2015, 8, 24))]
-	tc = create_learning_data.teachrer_creator(raw_data, feature_func, terms) # 一度メモリ内に教師データを作成するが、時間がかかる。
+	tc = create_learning_data.teacher_creator(raw_data, feature_func, terms) # 一度メモリ内に教師データを作成するが、時間がかかる。
 
 	# 学習とその検証を繰り返して、結果をファイルに保存する
 	with open("verify_report" + tag_name + ".csv", "w") as fw:

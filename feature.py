@@ -273,10 +273,29 @@ def get_bias_air_pressure(_date, hour, raw_data):
 
 
 
-def get_weather_dict(lines, th):
+def get_weather_dict(lines):
 	""" 気象データの辞書を返す
 	"""
 	weather_dict = {}
+
+	# 引数の検査
+	if len(lines) == 0:
+		return {}
+
+	# 要素数（エラーを排除するのに使う）を推定
+	sizes = [0] * 50
+	loop = 50
+	if len(lines) < loop:
+		loop = len(lines)
+	for i in range(loop):
+		field = lines[i].split(",")
+		if len(field) > len(sizes):
+			print("--size over on read_weather_data()--")
+		sizes[len(field)] += 1                     # エラーが出て止まってくれたほうがいいと思う・・・
+	th = sizes.index(max(sizes)) - 1               # 最初のフィールドには時刻が入っているはずで、これはカウントしないので1を引く
+	#print("th: ", th)
+
+	# 観測値にバラす
 	for line in lines:
 		#print(line)
 		line = line.rstrip()
@@ -316,15 +335,28 @@ def get_weather_dict(lines, th):
 	return weather_dict
 
 
-def read_weather_data(fpath, th):
-	"""
-	気象データを読み込む
+def read_weather_data(fpath):
+	""" 気象データをファイルから読み込む
 	"""
 	weather_dict = {}
 	with open(fpath, "r", encoding="utf-8-sig") as fr:
 		lines = fr.readlines()
-		weather_dict = get_weather_dict(lines, th)
+		if len(lines) == 0:
+			return {}
+		#print(str(lines[0:100]))
+		weather_dict = get_weather_dict(lines)
 	return weather_dict
+
+
+def read_raw_data(fnames=["amedas_kumamoto.csv", "amedas_asoOtohime.csv"]):
+	""" ファイルから観測データを読みだす
+	"""
+	ans = []
+	for fname in fnames:
+		weather_data = read_weather_data(fname)
+		#print(len(weather_data))
+		ans.append(weather_data)
+	return ans
 
 
 def create_feature23(_date, raw_data):
@@ -332,6 +364,7 @@ def create_feature23(_date, raw_data):
 	"""
 	print("feature of ", _date)
 	weather_data_A, weather_data_B = raw_data
+	#print(str(weather_data_A[_date]))
 	_feature = [
 		get_season(_date), \
 		get_measurement_value(_date, 14, [weather_data_B, index_B], "気温"), \
