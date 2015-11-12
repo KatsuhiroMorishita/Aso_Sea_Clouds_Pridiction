@@ -11,7 +11,7 @@ import time
 # ダウンロードする時刻をセット　ここでは、過去も含む
 hours = []
 for i in range(24): # 気象庁の予報はいつ更新されるか分からない・・・
-	hours.append(td(hours=i, minutes=1, seconds=0))
+	hours.append(td(hours=i, minutes=3, seconds=0))
 # 次にダウンロードすべき時刻　過去の時刻は全て未来の時刻に更新
 _next = []
 for mem in hours:
@@ -33,7 +33,12 @@ while True:
 			url = "http://www.jma.go.jp/jp/week/"
 			try:
 				fetched_dataframes = pandas.io.html.read_html(url) # download
-				table = fetched_dataframes[5]
+				print("len: ", len(fetched_dataframes))
+				size = []
+				for k in range(len(fetched_dataframes)):
+					size.append(len(str(fetched_dataframes[k])))
+				print("size: ", size)
+				table = fetched_dataframes[size.index(max(size))]  # 最大のデータ量のファイルを保存
 				if _hash != hash(str(table)):                      # 同じ情報は保存しない
 					print("--save--")
 					table.to_csv("wether_" + now.strftime('%Y_%m_%d_%H%M%S') + ".csv", encoding="utf-8-sig")
@@ -44,7 +49,7 @@ while True:
 				print("--error--")
 				print(str(e))
 			_next[i] = t + td(days=1)
-			print(_next)
+			#print(_next)
 	time.sleep(60)
 
 
