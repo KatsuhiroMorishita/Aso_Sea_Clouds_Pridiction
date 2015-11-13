@@ -16,6 +16,17 @@ import re
 
 
 
+web_cam_list = ["http://www.webtv-aso.net/lv/liveimg/image.jpg", \
+                "http://sakanashi.ddo.jp/kogafalls.jpg", \
+                "http://www.aso.vgs.kyoto-u.ac.jp/camera/image1.jpg", \
+                "http://www.whoshian.com/kazenotayori/image/licamaso.jpg"]
+
+#
+# 7:00-16:00
+#
+#
+
+
 def download(url, path):
     """ 指定されたパスでデータをバイナリ保存する（画像に限らない）
     """
@@ -46,7 +57,14 @@ for mem in times:
 print(_next)
 
 
-_hash = None
+class web_cam(object):
+	"""docstring for web_cam"""
+	def __init__(self, url):
+		super(web_cam, self).__init__()
+		self.arg = arg
+		
+
+
 while True:
 	for i in range(len(_next)):
 		t = _next[i]
@@ -57,13 +75,14 @@ while True:
 			target_time = now# - td(minutes=30)
 			_time = target_time.strftime("%Y%m%d%H%M")
 			print(_time)
-			url = "http://www.webtv-aso.net/lv/liveimg/image.jpg"
-			print(url)
-			try:
-				download(url, _time + ".jpg");
-			except Exception as e:
-				print("--error--")
-				print(str(e))
+			for k in range(len(web_cam_list)):
+				url = web_cam_list[k]
+				print(url)
+				try:
+					download(url, "id{0:2d}_".format(k) + _time + ".jpg")
+				except Exception as e:
+					print("--error--")
+					print(str(e))
 			_next[i] = t + td(days=1)
 			#print(_next)
 	time.sleep(10)
