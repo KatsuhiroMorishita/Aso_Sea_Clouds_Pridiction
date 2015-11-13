@@ -7,6 +7,8 @@ import pandas
 from datetime import datetime as dt
 from datetime import timedelta as td
 import time
+import glob
+import os
 
 # ダウンロードする時刻をセット　ここでは、過去も含む
 hours = []
@@ -22,7 +24,18 @@ for mem in hours:
 print(_next)
 
 
-_hash = None
+# 既に保存しているファイルと同じものを保存しないための仕掛け
+flist = glob.glob('*.csv')
+#print(flist)
+create_times = [os.stat(fpath).st_mtime for fpath in flist]
+#print(create_times)
+lasted_fpath = flist[create_times.index(max(create_times))]
+txt = ""
+with open(lasted_fpath, "r", encoding="utf-8-sig") as fr:
+	txt = fr.read()
+
+
+_hash = hash(txt)
 while True:
 	for i in range(len(_next)):
 		t = _next[i]
