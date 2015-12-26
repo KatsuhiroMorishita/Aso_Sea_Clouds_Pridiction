@@ -17,12 +17,12 @@ import re
 
 
 web_cam_list = ["http://www.webtv-aso.net/lv/liveimg/image.jpg", \
-                "http://sakanashi.ddo.jp/kogafalls.jpg", \
+                None, \
                 "http://www.aso.vgs.kyoto-u.ac.jp/camera/image1.jpg", \
                 "http://www.whoshian.com/kazenotayori/image/licamaso.jpg"]
 
 #
-# 7:00-16:00
+# "http://sakanashi.ddo.jp/kogafalls.jpg", 7:00-16:00, 更新されないｗ. ブラウザのリロードに相当する処理が必要。
 #
 #
 
@@ -77,6 +77,8 @@ while True:
 			print(_time)
 			for k in range(len(web_cam_list)):
 				url = web_cam_list[k]
+				if url == None:
+					continue
 				print(url)
 				try:
 					download(url, "id{0:2d}_".format(k) + _time + ".jpg")

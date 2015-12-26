@@ -25,14 +25,16 @@ print(_next)
 
 
 # 既に保存しているファイルと同じものを保存しないための仕掛け
-flist = glob.glob('*.csv')
-#print(flist)
-create_times = [os.stat(fpath).st_mtime for fpath in flist]
-#print(create_times)
-lasted_fpath = flist[create_times.index(max(create_times))]
 txt = ""
-with open(lasted_fpath, "r", encoding="utf-8-sig") as fr:
-	txt = fr.read()
+flist = glob.glob('*.csv')
+if len(flist) > 0:
+	#print(flist)
+	create_times = [os.stat(fpath).st_mtime for fpath in flist]
+	#print(create_times)
+	lasted_fpath = flist[create_times.index(max(create_times))]
+
+	with open(lasted_fpath, "r", encoding="utf-8-sig") as fr:
+		txt = fr.read()
 
 
 _hash = hash(txt)
