@@ -37,7 +37,7 @@ for row in rows:
 con.close()
 
 # 雲海の出た日を保存
-with open("unkai_date.csv", "w") as fw:
+with open("temp_unkai_date.csv", "w") as fw:
 	for mem in result:
 		fw.write(mem)
 		fw.write("\n")

@@ -20,37 +20,61 @@ import timeKM
 try_times = 2000
 
 
-def process(tag_name, correct_result, tc, feature_func, raw_data):
+
+def _read_correct_result(fname):
+	# 検証用の正解データを取得する
+	correct_result = {}
+	with open(fname, "r") as fr:
+		lines = fr.readlines()
+		for line in lines:
+			line = line.rstrip()
+			date, value = line.split(",")
+			date = timeKM.getTime(date + " 0:0:0")
+			if value.isdigit():
+				value = float(value)
+			correct_result[date] = value
+	return correct_result
+
+
+def process(tag_name, tc, feature_func, raw_data):
 	# 学習とその検証を繰り返して、結果をファイルに保存する
 	with open("verify_report" + tag_name + ".csv", "w") as fw:
-		dates = sorted(correct_result.keys())
-		start_date = dates[0]
-		end_date = dates[-1]
 		for i in range(try_times):
 			print("--try count: {0}/{1}--".format(i, try_times))
 			# 教師データを作成
-			fname = tc.save_teacher()
-			training_data = learning.read_training_data(fname)
+			_save_name_teacher = "teaching_data" + tag_name + "_{0:05d}".format(i) + ".csv"
+			_save_name_verify = "verify_data" + tag_name + "_{0:05d}".format(i) + ".csv"
+			verify_data, teacher_dates, teacher_features, teacher_flags = tc.save_teacher(save_name_teacher=_save_name_teacher, save_name_verify=_save_name_verify)
+			features_dict = tc.get_all_features()
+			training_data = (teacher_features, teacher_flags)
+			dates = sorted(verify_data.keys())
 			# 学習
 			clf = learning.learn(training_data, 'entry_temp{0}_{1:05d}.pickle'.format(tag_name, i))
-			result = predict.predict(clf, start_date, end_date, feature_func, raw_data)    # 渡す特徴ベクトル生成関数は状況に合わせる
+			result = predict.predict2(clf, dates, features_dict)
 			# 結果の集計
 			scale = 10
-			zero = [0.0] * scale
-			one = [0.0] * scale
-			for date in dates:
-				if date in result:
-					try:
-						c = correct_result[date]
-						val = c - result[date]
-						if int(c) == 0:
-							zero[abs(int(val * scale))] += 1
-						elif int(c) == 1:
-							one[abs(int(val * scale))] += 1
-						#print(val)
-					except:
-						pass
-			# ファイルへの保存
+			zero = [0.000001] * scale # sum()して分母に入れようとしたら、0の時にエラーが出るので0.000001とした
+			one = [0.000001] * scale
+			with open("verify_data" + tag_name + "_{0:05d}".format(i) + "_result.csv", "w") as fw_result:
+				for date in dates:
+					if date in result:
+						try:
+							c = verify_data[date]
+							val = c - result[date]
+							if int(c) == 0:
+								zero[abs(int(val * scale))] += 1
+							elif int(c) == 1:
+								one[abs(int(val * scale))] += 1
+							#print(val)
+							fw_result.write(str(date))
+							fw_result.write(",")
+							fw_result.write(str(verify_data[date]))
+							fw_result.write(",")
+							fw_result.write(str(result[date]))
+							fw_result.write("\n")
+						except:
+							pass
+			# 最終結果の一覧ファイルへの保存
 			zero = [str(x / sum(zero)) for x in zero] # 正規化
 			one = [str(x / sum(one)) for x in one]
 			fw.write("{0},".format(i))
@@ -68,31 +92,20 @@ def main():
 	if argc > 1:
 		tag_name = "_" + argvs[1]
 
-	# アメダスの観測データを読みだす
+	# 特徴ベクトルの生成に必要なデータ（例：アメダスの観測データ）を読みだす
 	raw_data = feature.read_raw_data()
 
-	# 検証用の正解データを取得する
-	correct_result = {}
-	with open("correct_result.csv", "r") as fr:
-		lines = fr.readlines()
-		for line in lines:
-			line = line.rstrip()
-			date, value = line.split(",")
-			date = timeKM.getTime(date + " 0:0:0")
-			if value.isdigit():
-				value = float(value)
-			correct_result[date] = value
-
 	# 教師データ作成の準備
-	terms = [(dt(2005, 3, 10), dt(2013, 8, 1)), (dt(2015, 6, 23), dt(2015, 8, 24))]
+	terms = [(dt(2004, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2016, 1, 4))]
+	#terms = [(dt(2015, 6, 23), dt(2016, 1, 4))]
 
 	feature_func = feature.create_feature16
-	tc = create_learning_data.teacher_creator(raw_data, feature_func, terms) # 一度メモリ内に教師データを作成するが、時間がかかる。
-	process(tag_name + "_f16", correct_result, tc, feature_func, raw_data)
+	tc = create_learning_data.teacher_creator(raw_data, feature_func, terms, "unkai_date.csv") # 一度メモリ内に教師データを作成するが、時間がかかる。
+	process(tag_name + "_f16", tc, feature_func, raw_data)
 
 	feature_func = feature.create_feature23
-	tc = create_learning_data.teacher_creator(raw_data, feature_func, terms)
-	process(tag_name + "_f23", correct_result, tc, feature_func, raw_data)
+	tc = create_learning_data.teacher_creator(raw_data, feature_func, terms, "unkai_date.csv")
+	process(tag_name + "_f23", tc, feature_func, raw_data)
 
 
 if __name__ == '__main__':

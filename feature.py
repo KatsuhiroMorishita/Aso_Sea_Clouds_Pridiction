@@ -366,7 +366,7 @@ def create_feature23(_date, raw_data):
 	weather_data_A, weather_data_B = raw_data
 	#print(str(weather_data_A[_date]))
 	_feature = [
-		get_season(_date), \
+		#get_season(_date), \
 		get_measurement_value(_date, 14, [weather_data_B, index_B], "気温"), \
 		get_measurement_value(_date, 6, [weather_data_B, index_B], "気温"), \
 		get_average_temperature_3days(_date, [weather_data_B, index_B]), \
@@ -402,7 +402,7 @@ def create_feature16(_date, raw_data):
 	print("feature of ", _date)
 	weather_data_A, weather_data_B = raw_data
 	_feature = [
-		get_season(_date), \
+		#get_season(_date), \
 		get_measurement_value(_date, 14, [weather_data_B, index_B], "気温"), \
 		get_measurement_value(_date, 6, [weather_data_B, index_B], "気温"), \
 		get_average_temperature_3days(_date, [weather_data_B, index_B]), \
