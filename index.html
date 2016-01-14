@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="阿蘇に雲海が発生するか予想するエンジン作っちゃうぞ : 阿蘇に雲海が出現するか予想するソフトウェア">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>阿蘇に雲海が発生するか予想するエンジン作っちゃうぞ</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/KatsuhiroMorishita/Aso_Sea_Clouds_Pridiction">View on GitHub</a>
+
+          <h1 id="project_title">阿蘇に雲海が発生するか予想するエンジン作っちゃうぞ</h1>
+          <h2 id="project_tagline">阿蘇に雲海が出現するか予想するソフトウェア</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/KatsuhiroMorishita/Aso_Sea_Clouds_Pridiction/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/KatsuhiroMorishita/Aso_Sea_Clouds_Pridiction/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h2>
+<a id="プロジェクトの目的" class="anchor" href="#%E3%83%97%E3%83%AD%E3%82%B8%E3%82%A7%E3%82%AF%E3%83%88%E3%81%AE%E7%9B%AE%E7%9A%84" aria-hidden="true"><span class="octicon octicon-link"></span></a>プロジェクトの目的</h2>
+
+<p>　阿蘇山は日本で最大のカルデラを誇る活火山です。そのカルデラの外輪山からの眺望は非常にいいのですが、更にいいのが早朝に発生する雲海の眺めです。ただ、雲海が出るかどうかは基本的に運任せであり、せっかく外輪山へ登っても霧で全く見えないということも多いのです。本プロジェクトでは、そんな阿蘇の魅力の一つである雲海を見に行こうという勇者のためにその発生を予想することで貢献します。</p>
+
+<h2>
+<a id="うんかいったーとの関係" class="anchor" href="#%E3%81%86%E3%82%93%E3%81%8B%E3%81%84%E3%81%A3%E3%81%9F%E3%83%BC%E3%81%A8%E3%81%AE%E9%96%A2%E4%BF%82" aria-hidden="true"><span class="octicon octicon-link"></span></a>うんかいったーとの関係</h2>
+
+<p>　<a href="https://twitter.com/unkaitter">うんかいったー</a>は阿蘇の雲海の発生予想をツイートしているTwitterアカウントです。これは熊本市を中心に活動するITコミュニティ<a href="http://appleague.jp/kumamoto-top">AppLEAGUE</a>が作成したもので、毎日２回、16時20分頃と23時20分頃に予想値を発表しています。本プロジェクトで作成された機械学習器がうんかいったーで使われています。</p>
+
+<h2>
+<a id="予想の方法" class="anchor" href="#%E4%BA%88%E6%83%B3%E3%81%AE%E6%96%B9%E6%B3%95" aria-hidden="true"><span class="octicon octicon-link"></span></a>予想の方法</h2>
+
+<p>　過去に撮影された雲海の写真と2015年6月以降の雲海の発生状況、さらにアメダスの気象データを基に機械学習を行います。雲海の発生履歴は<a href="https://github.com/KatsuhiroMorishita/Aso_Sea_Clouds_Pridiction/blob/master/unkai_date.csv">unkai_date.csv</a>に格納されています。また、アメダスの観測データは<a href="https://github.com/KatsuhiroMorishita/Aso_Sea_Clouds_Pridiction/blob/master/amedas_asoOtohime.csv">阿蘇乙姫</a>と<a href="https://github.com/KatsuhiroMorishita/Aso_Sea_Clouds_Pridiction/blob/master/amedas_kumamoto.csv">熊本市</a>の２つを利用しています。機械学習器にはとりあえずそこそこの性能が出るであろうscikit-learnのランダムフォレストを採用しています。</p>
+
+<h2>
+<a id="現状" class="anchor" href="#%E7%8F%BE%E7%8A%B6" aria-hidden="true"><span class="octicon octicon-link"></span></a>現状</h2>
+
+<p>　うんかいったーの本格的な運用を開始したのが2015年10月です。11月は良い精度が出ていたように思われましたが、12月に入ってガッカリな予想値しか出ませんでした。2016年1月に入って学習アルゴリズムを変更したので的中することを祈っています。orz</p>
+
+<h2>
+<a id="今後" class="anchor" href="#%E4%BB%8A%E5%BE%8C" aria-hidden="true"><span class="octicon octicon-link"></span></a>今後</h2>
+
+<p>　基本的に、観測データが増えたら毎月学習して差し替えるつもりです。ただ、雲海の撮影日以外の日に雲海が出なかった・出たという保証がないため学習結果を良くないものにしている気がします。基本的に半教師あり学習をした方が良いんだろうなぁ（遠い目）。</p>
+
+<h2>
+<a id="うんかいったーへのサポートとコンタクト" class="anchor" href="#%E3%81%86%E3%82%93%E3%81%8B%E3%81%84%E3%81%A3%E3%81%9F%E3%83%BC%E3%81%B8%E3%81%AE%E3%82%B5%E3%83%9D%E3%83%BC%E3%83%88%E3%81%A8%E3%82%B3%E3%83%B3%E3%82%BF%E3%82%AF%E3%83%88" aria-hidden="true"><span class="octicon octicon-link"></span></a>うんかいったーへのサポートとコンタクト</h2>
+
+<p>　興味を持って頂けましたでしょうか？そんな方はぜひ、<a href="https://twitter.com/unkaitter">うんかいったー</a>にメッセージを下さい。雲海の発生事実の確認サポートや精度の良い学習アルゴリズムの提案を大募集中です！　(^o^)/</p>
+
+<h3>
+<a id="雲海発生予想エンジンへのご質問など" class="anchor" href="#%E9%9B%B2%E6%B5%B7%E7%99%BA%E7%94%9F%E4%BA%88%E6%83%B3%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%B3%E3%81%B8%E3%81%AE%E3%81%94%E8%B3%AA%E5%95%8F%E3%81%AA%E3%81%A9" aria-hidden="true"><span class="octicon octicon-link"></span></a>雲海発生予想エンジンへのご質問など</h3>
+
+<p>　熊本高専建築社会デザイン工学科森下功啓までご連絡下さい。morimori.ynct[at]gmail.com</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">阿蘇に雲海が発生するか予想するエンジン作っちゃうぞ maintained by <a href="https://github.com/KatsuhiroMorishita">KatsuhiroMorishita</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
