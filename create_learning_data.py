@@ -127,7 +127,7 @@ class  teacher_creator():
 		"""
 		# verify用のデータ抽出
 		verify_data = {}
-		verify_date = []                       # 学習に使わないように記憶
+		verify_date = []                       # 検証用のデータを学習に使わないように記憶
 		verify_ratio = 0.5                     # ベリファイに使う割合
 		good_date_copy = copy.copy(self._verify_good_date)
 		use_amount = int(len(self._verify_good_date) * verify_ratio)

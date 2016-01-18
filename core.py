@@ -15,10 +15,10 @@ import time
 from sklearn.ensemble import RandomForestRegressor as ml # RandomForestClassifier クラス分けならこれ
 from datetime import datetime as dt
 from datetime import timedelta as td
+
 import feature
 import amedas.download as amd
 import amedas.html_parser as amp
-
 import timeKM
 
 # 何日前のデータまで取るか

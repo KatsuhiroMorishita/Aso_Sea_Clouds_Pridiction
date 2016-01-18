@@ -109,11 +109,7 @@ def main():
 		clf = pickle.load(f)               # オブジェクト復元
 
 	# 気象データの読み込み
-	weather_data_Aso = feature.read_weather_data("amedas_aso.csv", len(feature.index_A))
-	weather_data_Otohime = feature.read_weather_data("amedas_asoOtohime.csv", len(feature.index_B))
-	#print(weather_data_Aso)
-	#print(weather_data_Otohime)
-	raw_data = [weather_data_Aso, weather_data_Otohime]
+	raw_data = feature.read_raw_data()
 
 	predict(\
 		clf, \
