@@ -4,12 +4,18 @@ Pythonで作った阿蘇に雲海が出現するか予想する機械学習器�
 ## プロジェクト概要
 [こちら](http://katsuhiromorishita.github.io/Aso_Sea_Clouds_Pridiction/)
 
+## 実行環境
+動作プラットフォーム：Python 3が動作するLinux, Mac, Windows
+開発環境：Mac OSX pyenv Python3.5, Windows Anaconda Python3.5
+
+Pythonのキャッシュファイルが原因でPython 3.5よりも古いバージョンで動作しないことがあります。また、機械学習機を作成したプラットフォームがMacかWindowsかでお使いのマシン上で動作しないこともあります。その場合、ご自身の環境で学習を実行させて学習機を作成してください。
+
 ## スクリプトファイルの説明
 ### よく使う、重要なスクリプト
 * feature.py: 気象データと日付を渡すと特徴ベクトルを生成します。
 * core.py: うんかいったーにツイートするサーバーが実行するスクリプトです。実行時点で最新の予想値を計算します。
-* auto_verify.py: 数千回の機械学習を行い、その都度学習済みの機械学習機を保存します。同時に生成されるverify_reportを見ると性能の高い機械学習機が分かります。
-* check4learned_machine.py: auto_verify.pyの作成した学習機を読みだして、閾値による判定を実施します。
+* learning_repeat.py: 数千回の機械学習を行い、その都度学習済みの機械学習機を保存します。同時に生成されるverify_reportには個々の学習機の学習結果が保存され、性能の高い機械学習機が分かります。
+* check4learned_machine.py: auto_verify.pyの作成した学習機を読みだして、閾値による判定を実施します。利用する学習機の選択に利用します。
 
 ### ライブラリとして使っているスクリプト
 * timeKM.py: 時刻関係の処理を行う。
