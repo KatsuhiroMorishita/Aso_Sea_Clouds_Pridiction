@@ -5,8 +5,8 @@ Pythonで作った阿蘇に雲海が出現するか予想する機械学習器�
 [こちら](http://katsuhiromorishita.github.io/Aso_Sea_Clouds_Pridiction/)
 
 ## 実行環境
-開発環境：Mac OSX pyenv Python3.5, Windows Anaconda Python3.5
-  動作プラットフォーム：Python 3が動作するLinux, Mac, Windows
+開発環境：Mac OSX pyenv Python3.5, Windows Anaconda Python3.5  
+動作プラットフォーム：Python 3が動作するLinux, Mac, Windows
 
 Pythonのキャッシュファイルが原因でPython 3.5よりも古いバージョンで動作しないことがあります。また、機械学習機を作成したプラットフォームがMacかWindowsかでお使いのマシン上で動作しないこともあります。その場合、ご自身の環境で学習を実行させて学習機を作成してください。
 
