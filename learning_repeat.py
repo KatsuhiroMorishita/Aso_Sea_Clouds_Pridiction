@@ -112,8 +112,8 @@ def main():
 	raw_data = feature.read_raw_data()
 
 	# 教師データ作成の準備
-	#terms = [(dt(2004, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2016, 1, 4))]
-	terms = [(dt(2015, 6, 23), dt(2015, 11, 30))]
+	terms = [(dt(2004, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2015, 11, 30))]
+	#terms = [(dt(2015, 6, 23), dt(2015, 11, 30))]
 
 	_save_flag = False # 検証用にファイルを残したいなら、Trueとする
 	feature_func = feature.create_feature16
