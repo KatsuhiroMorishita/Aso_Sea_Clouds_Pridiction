@@ -101,7 +101,7 @@ def process(tag_name, tc, feature_func, save_flag=False, try_times=2000):
 
 def main():
 	# 引数の処理
-	try_times = 2000  # 保存するファイル名にタグを付けることができる
+	try_times = 100  # 保存するファイル名にタグを付けることができる
 	argvs = sys.argv  # コマンドライン引数を格納したリストの取得
 	print(argvs)
 	argc = len(argvs) # 引数の個数
@@ -112,17 +112,17 @@ def main():
 	raw_data = feature.read_raw_data()
 
 	# 教師データ作成の準備
-	terms = [(dt(2004, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2016, 1, 4))]
-	#terms = [(dt(2015, 6, 23), dt(2016, 1, 4))]
+	#terms = [(dt(2004, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2016, 1, 4))]
+	terms = [(dt(2015, 6, 23), dt(2015, 11, 30))]
 
 	_save_flag = False # 検証用にファイルを残したいなら、Trueとする
 	feature_func = feature.create_feature16
 	tc = create_learning_data.teacher_creator(raw_data, feature_func, terms, "unkai_date.csv") # 一度メモリ内に教師データを作成するが、時間がかかる。
-	process("_f16", tc, feature_func, try_times, save_flag=_save_flag)
+	process("_f16", tc, feature_func, save_flag=_save_flag, try_times=try_times)
 
 	feature_func = feature.create_feature23
 	tc = create_learning_data.teacher_creator(raw_data, feature_func, terms, "unkai_date.csv")
-	process("_f23", tc, feature_func, try_times, save_flag=_save_flag)
+	process("_f23", tc, feature_func, save_flag=_save_flag, try_times=try_times)
 
 
 if __name__ == '__main__':

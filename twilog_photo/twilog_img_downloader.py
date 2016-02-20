@@ -13,11 +13,12 @@ from datetime import timedelta as td
 
 
 
-start = dt(year=2015, month=12, day=24)
-end = dt(year=2016, month=1, day=16)
+start = dt(year=2016, month=1, day=16)
+end = dt(year=2016, month=2, day=16)
 
 origin_url = "http://twilog.org/unkaitterbot/date-"
 
+# ダウンロードに必要なURLを作成する
 urls = {}
 t = start
 while t < end:
@@ -27,7 +28,7 @@ while t < end:
     urls[date_str2] = origin_url + date_str
     t += td(days=1)
 
-
+# 画像をダウンロードしつつ、保存する
 dates = sorted(urls.keys())
 for date in dates:
     url = urls[date]

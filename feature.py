@@ -44,6 +44,31 @@ def get_measurement_value(_date, hour, raw_data, target_index):
 
 
 
+def get_average_wether(_date, _weather_data, key, term_hours=72):
+	""" 平均観測値
+	集計の仕方が不味いと思うが、まぁ動いているからいいや。
+	"""
+	weather_store, _index = _weather_data
+	#__date = dt(_date.year, _date.month, _date.day) - td(hours=term_hours)
+	__date = _date - td(hours=term_hours)
+	values = []
+	for i in range(term_hours):
+		if __date not in weather_store:
+			return None
+		one_data = weather_store[__date]
+		#print(one_data)
+		if one_data == None:
+			return None
+		values.append(one_data[_index[key]])
+		__date += td(hours=1)
+	#print(values)
+	if not None in values:
+		return sum(values) / float(len(values))
+	else:
+		return None
+
+
+
 def get_average_temperature_3days(_date, raw_data):
 	""" 3日間の平均気温
 	集計の仕方が不味いと思うが、まぁ動いているからいいや。
@@ -309,20 +334,21 @@ def get_weather_dict(lines):
 		for mem in field:
 			#print(mem)
 			fuga = mem.replace(".", "")
-			fuga = fuga.replace(" )", "")          # 観測上のおかしなデータにくっつく記号
+			fuga = fuga.replace(" )", "")            # 観測上のおかしなデータにくっつく記号
 			if len(fuga) > 0:
 				if "-" == fuga[0]:
 					fuga = fuga[1:]
-			fuga = fuga.replace("-", "")           # -10, 10-　みたいなパターン。数値の前のマイナス符号があれば負値。
+			fuga = fuga.replace("-", "")             # -10, 10-　みたいなパターン。数値の前のマイナス符号があれば負値。
+			fuga = fuga.replace("+", "")             # +10, 10+　みたいなパターン。
 			if fuga.isdigit() == True:
 				mem = mem.replace(" )", "")
-				if "-" == mem[-1]:                 # 10-　みたいなパターンへの対応
+				if "-" == mem[-1] or "+" == mem[-1]: # 10-, 10+　みたいなパターンへの対応
 					mem = mem[:-1]
 				new_field.append(float(mem))
 			else:
-				if mem == "":
+				if mem == "" or mem == "--":
 					new_field.append(0.0)
-				elif mem == "×" or mem == "///":   # 恐らく、非観測項目にくっつく記号
+				elif mem == "×" or mem == "///":     # 恐らく、非観測項目にくっつく記号
 					new_field.append(None)
 				else:
 					new_field.append(mem)

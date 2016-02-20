@@ -87,7 +87,7 @@ def sub_process(tag_name, target_dir, feature_func, raw_data, terms):
 	report_path = target_dir + "/learned_machine_report.csv"
 	with open(report_path, "w") as fw:
 		# 閾値を変えつつ集計
-		for th in numpy.arange(0.5, 1.0, 0.1): # th: 閾値
+		for th in numpy.arange(0.5, 0.6, 0.1): # th: 閾値
 			result = {}                        # 閾値で2値化した結果を格納する
 			for fname in flist:
 				predicted_result = predicted_result_dict[fname]
@@ -127,7 +127,8 @@ def main_process(target_time, target_dir):
 	raw_data = feature.read_raw_data()
 
 	# 処理対象の制限（処理時間の短縮になるかも）
-	terms = [(dt(2011, 6, 24), dt(2013, 6, 23)), (dt(2015, 6, 23), dt(2016, 1, 16))]
+	#terms = [(dt(2011, 6, 24), dt(2013, 6, 23)), (dt(2015, 6, 23), dt(2016, 1, 16))]
+	terms = [(dt(2015, 12, 1), dt(2016, 2, 15))]
 
 	# 引数に合わせて使う特徴ベクトル生成関数を変えて、検証する
 	report_paths = []
