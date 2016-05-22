@@ -50,14 +50,12 @@ def get_unkai_pre2(_date, unkai_dates):
 
 
 class  teacher_creator():
-	def __init__(self, raw_data, feature_generation_func, terms, fname_observational_data="unkai_date.csv"):
+	def __init__(self, feature_generator, terms, fname_observational_data="unkai_date.csv"):
 		""" 
 		arg:
-			raw_data: アメダスの観測データ
 			terms: 対象期間
 		"""
-		self._raw_data = raw_data
-		self._feature_generation_func = feature_generation_func
+		self._feature_generator = feature_generator
 		self._term = terms
 		self._good_feature_set = {}
 		self._bad_feature_set = {}
@@ -69,6 +67,7 @@ class  teacher_creator():
 		self._verify_good_date = []
 
 		# 雲海発生データを読み込む　未観測も含めて取得する
+		lines = []
 		with open(fname_observational_data, "r", encoding="utf-8-sig") as fr:
 			lines = fr.readlines()
 		for line in lines:
@@ -86,7 +85,8 @@ class  teacher_creator():
 				if verify_flag == "v":
 					self._verify_bad_date.append(date)
 			elif value == "x":
-				self._unknown_date.append(date)
+				self._bad_date.append(date) # あまりに欠損が多いので、Twitterを信じるなら出なかったものとして扱ってOKだと思う.
+				#self._unknown_date.append(date)
 		#print(self._good_date)
 
 		# 教師データを作る
@@ -100,9 +100,9 @@ class  teacher_creator():
 					_date += datetime.timedelta(days=1)
 					continue
 				#print(_date)
-				_feature = self._feature_generation_func(_date, raw_data) # 特徴ベクトルを作る
+				_feature = self._feature_generator.get_feature(_date) # 特徴ベクトルを作る
 				#print(_feature)
-				if _feature != None:
+				if not _feature is None:
 					unkai_point = get_unkai(_date, self._good_date)# + get_unkai_pre1(_date, unkai_date_list) + get_unkai_pre2(_date, unkai_date_list)
 					label = unkai_label[unkai_point]
 					if label == unkai_label[0]:
@@ -128,7 +128,7 @@ class  teacher_creator():
 		# verify用のデータ抽出
 		verify_data = {}
 		verify_date = []                       # 検証用のデータを学習に使わないように記憶
-		verify_ratio = 0.5                     # ベリファイに使う割合
+		verify_ratio = 0.0#0.5                     # ベリファイに使う割合
 		good_date_copy = copy.copy(self._verify_good_date)
 		use_amount = int(len(self._verify_good_date) * verify_ratio)
 		for _ in range(use_amount):
@@ -144,27 +144,46 @@ class  teacher_creator():
 			_date = bad_date_copy.pop(i)
 			verify_data[_date] = 0
 			verify_date.append(_date)
+		#print("verify: ", verify_date)
 
 		# 雲海が出たデータ数と出なかったデータ数を調整して、教師データを作成
 		teacher_arr = []
-		zero_ratio = 5.0                   # 雲海が出た（=1）に対する、雲海が出ない（=0）の割合
-		for _date in good_date_copy:       # 雲海の出現した日のデータはすべて使う
+		for _date in self._good_feature_set:   # verifyに使われず、かつ雲海の出現した日のデータはすべて使う
+			if _date in verify_date:
+				continue
 			teacher_arr.append(self._all_feature_set[_date])
-		use_amount = int(len(good_date_copy) * zero_ratio)
-		if len(self._bad_feature_set) - len(bad_date_copy) < use_amount:     # 雲海の出現日数よりも非出現日数が少ない場合、非出現データは全て使う
-			use_amount = len(self._bad_feature_set) - len(bad_date_copy)     # 本気でやるなら偽陽性・偽陰性の許容量に合わせて教師データ数は決めるべき
+		#print("teacher good: ", teacher_arr)
+		# 雲海が出なかった日のデータを格納する
+		zero_ratio = 4.0                   # 雲海が出た（=1）に対する、雲海が出ない（=0）の割合
+		use_amount = int(len(teacher_arr) * zero_ratio) # 教師データに含める、雲海が出なかった日のデータ数
+		if len(self._bad_feature_set) - (len(self._verify_bad_date) - len(bad_date_copy)) < use_amount:     # 雲海の出現日数よりも非出現日数が少ない場合、非出現データは全て使う
+			use_amount = len(self._bad_feature_set) - (len(self._verify_bad_date) - len(bad_date_copy))     # 本気でやるなら偽陽性・偽陰性の許容量に合わせて教師データ数は決めるべき
 		count = 0
-		for _date in bad_date_copy:
-			teacher_arr.append(self._bad_feature_set[_date])
-			count += 1
-		bad_dates = list(self._bad_feature_set.keys())
+		use_date4bad = []
+		bad_dates = copy.copy(self._bad_date) # 確実に出なかった日のデータを使う
 		while count < use_amount:
+			if len(bad_dates) <= 0:
+				break
 			i = random.randint(0, len(bad_dates) - 1)
 			_date = bad_dates.pop(i)
-			if _date in verify_date and _date in bad_date_copy: # bad_date_copyはコピー済みなので省く
+			if _date in verify_date:# and _date in use_date4bad:
 				continue
 			teacher_arr.append(self._bad_feature_set[_date])
+			use_date4bad.append(_date)
 			count += 1
+		bad_dates = list(self._bad_feature_set.keys()) # 足りない場合に、出ていない可能性のある日を加える
+		while count < use_amount:
+			if len(bad_dates) <= 0:
+				break
+			i = random.randint(0, len(bad_dates) - 1)
+			_date = bad_dates.pop(i)
+			if _date in verify_date and _date in use_date4bad:
+				continue
+			teacher_arr.append(self._bad_feature_set[_date])
+			use_date4bad.append(_date)
+			count += 1
+		#print("teacher bad: ", use_date4bad)
+		#exit()
 		#print(teacher_arr)
 		teacher_dates = [_date for _date, one_teaching_data, flag in teacher_arr]
 		teacher_features = [one_teaching_data for _date, one_teaching_data, flag in teacher_arr]
@@ -212,17 +231,15 @@ class  teacher_creator():
 
 
 def main():
-	# 気象データの読み込み
-	raw_data = feature.read_raw_data()
-
 	# 処理の対象期間（過去のデータに加えて、最新の観測データも加えるので、タプルで期間を指定する）
-	terms = [(dt(2004, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2016, 1, 4))]
+	#terms = [(dt(2004, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2016, 1, 4))]
+	terms = [(dt(2015, 6, 23), dt(2015, 11, 30))]
 
 	# 特徴ベクトルを作成する関数
-	feature_func = feature.create_feature16
+	fg_obj = feature.feature_generator(23)
 
 	# 特徴ベクトルを作成して保存
-	tc = teacher_creator(raw_data, feature_func, terms)
+	tc = teacher_creator(fg_obj, terms)
 	tc.save_teacher()
 
 

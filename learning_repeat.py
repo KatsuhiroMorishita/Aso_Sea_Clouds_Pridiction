@@ -33,10 +33,11 @@ def create_dir(path_list):
             os.mkdir(_dir)
     return _dir
 
-def process(tag_name, tc, feature_func, save_flag=False, try_times=2000):
+
+def process(tag_name, tc, save_flag=False, try_times=2000):
 	""" 学習とその検証を繰り返して、結果をファイルに保存する
 	"""
-	create_dir([tag_name])
+	_dir = create_dir([tag_name])
 
 	with open(tag_name + "/av_verify_report" + tag_name + ".csv", "w") as fw:
 		for i in range(try_times):
@@ -55,7 +56,7 @@ def process(tag_name, tc, feature_func, save_flag=False, try_times=2000):
 			dates = sorted(verify_data.keys())                   # 学習に使っていない日付
 
 			# 学習
-			clf = learning.learn(training_data, tag_name + "/av_entry_temp{0}_{1:05d}.pickle".format(tag_name, i))
+			clf = learning.learn(training_data, tag_name)
 			result = predict.predict2(clf, dates, features_dict) # 学習に使っていないデータで検証
 			
 			# 必要なら個別の結果も保存
@@ -101,28 +102,32 @@ def process(tag_name, tc, feature_func, save_flag=False, try_times=2000):
 
 def main():
 	# 引数の処理
-	try_times = 100  # 保存するファイル名にタグを付けることができる
-	argvs = sys.argv  # コマンドライン引数を格納したリストの取得
+	target_time = ""   # 処理対象の時刻を引数で指定
+	target_dir = ""
+	try_times = 10    # 試行回数
+	argvs = sys.argv   # コマンドライン引数を格納したリストの取得
 	print(argvs)
-	argc = len(argvs) # 引数の個数
-	if argc > 1:
-		try_times = int(argvs[1])
-
-	# 特徴ベクトルの生成に必要なデータ（例：アメダスの観測データ）を読みだす
-	raw_data = feature.read_raw_data()
+	argc = len(argvs)  # 引数の個数
+	if argc > 3:
+		target_time = argvs[1]
+		target_dir = argvs[2]
+		try_times = int(argvs[3])
+	else:
+		print("input: target-time, target-dir, try-times")
+		exit()
 
 	# 教師データ作成の準備
-	terms = [(dt(2004, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2015, 11, 30))]
-	#terms = [(dt(2015, 6, 23), dt(2015, 11, 30))]
+	terms = [(dt(2004, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2016, 5, 1))]
+	#terms = [(dt(2010, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2016, 5, 1))]
+	#terms = [(dt(2015, 6, 23), dt(2016, 2, 1))]
 
 	_save_flag = False # 検証用にファイルを残したいなら、Trueとする
-	feature_func = feature.create_feature16
-	tc = create_learning_data.teacher_creator(raw_data, feature_func, terms, "unkai_date.csv") # 一度メモリ内に教師データを作成するが、時間がかかる。
-	process("_f16", tc, feature_func, save_flag=_save_flag, try_times=try_times)
 
-	feature_func = feature.create_feature23
-	tc = create_learning_data.teacher_creator(raw_data, feature_func, terms, "unkai_date.csv")
-	process("_f23", tc, feature_func, save_flag=_save_flag, try_times=try_times)
+	# 特徴生成オブジェクト作成
+	fg_obj = feature.feature_generator(target_time)
+	tc = create_learning_data.teacher_creator(fg_obj, terms, "unkai_date.csv") # 一度メモリ内に教師データを作成するが、時間がかかる。
+	process(target_dir, tc, save_flag=_save_flag, try_times=try_times)
+
 
 
 if __name__ == '__main__':

@@ -8,11 +8,13 @@
 # lisence: MIT
 #----------------------------------------
 import sys
+import os
+import numpy as np
 import pandas
 import pickle
 import math
 import time
-from sklearn.ensemble import RandomForestRegressor as ml # RandomForestClassifier クラス分けならこれ
+import machine as mc
 from datetime import datetime as dt
 from datetime import timedelta as td
 
@@ -25,15 +27,6 @@ import timeKM
 days = 6
 wait_seconds = 0.1                        # たまにプロキシ？ファイヤウォール？が通信をカットするのでその対策.ほとんど意味がなかったが。。
 
-
-
-def resolve(txt_bytes):
-	""" bytesをstrに変換して、改行コードで区切ったリストを返す
-	"""
-	txt = txt_bytes.decode(encoding="utf-8-sig", errors="ignore")
-	lines = txt.split("\n")
-	#print(lines)
-	return lines
 
 
 def get_passed_amedas_data(node_obj, date, term):
@@ -51,11 +44,11 @@ def get_passed_amedas_data(node_obj, date, term):
 		if _date.year == now.year and _date.month == now.month and _date.day == now.day: # 現時点の観測データは対応していない
 			continue
 		print(_date)
-		html_bytes = node_obj.get_data(_type="hourly", date=_date)
-		if html_bytes == None:
+		html_txt = node_obj.get_data(_type="hourly", date=_date)
+		if html_txt is None:
 			print("--can't download--")
 			continue
-		html_lines = resolve(html_bytes)
+		html_lines = html_txt.split("\n")
 		data = amp.get_data(html_lines, _date)
 		#print(data)
 		lines += [",".join(x) for x in data]
@@ -68,8 +61,8 @@ def get_amedas_data_typeB(node_obj, date):
 	# 最新のデータを入手
 	_date = dt.now() + td(days=1)
 	if date.year == _date.year and date.month == _date.month and date.day == _date.day:
-		html_bytes = node_obj.get_data(_type="real-time")
-		html_lines = resolve(html_bytes)
+		html_txt = node_obj.get_data(_type="real-time")
+		html_lines = html_txt.split("\n")
 		data = amp.get_data(html_lines, dt.now())
 		print(data)
 		# 最新の観測データは過去の観測データとフォーマットが異なるので、整形する
@@ -117,8 +110,8 @@ def get_amedas_data_typeA(node_obj, date):
 	# 最新のデータを入手
 	_date = dt.now() + td(days=1)
 	if date.year == _date.year and date.month == _date.month and date.day == _date.day:
-		html_bytes = node_obj.get_data(_type="real-time")
-		html_lines = resolve(html_bytes)
+		html_txt = node_obj.get_data(_type="real-time")
+		html_lines = html_txt.split("\n")
 		data = amp.get_data(html_lines, dt.now())
 		print(data)
 		# 最新の観測データは過去の観測データとフォーマットが異なるので、整形する
@@ -233,13 +226,11 @@ def get_amedas_data_typeA(node_obj, date):
 
 def get_amedas_data(node_obj, date):
 	""" アメダスの観測データを返す
-	自動的に判別できればいいのだけど・・・できるかな？
+	含まれる情報別に、ダウンロード後の文字列解析に使う関数を使い分けている。
 	"""
-	if node_obj.name == "阿蘇山":
+	if int(node_obj.block_no) > 47000:
 		return get_amedas_data_typeA(node_obj, date)
-	if node_obj.name == "熊本":
-		return get_amedas_data_typeA(node_obj, date)
-	if node_obj.name == "阿蘇乙姫":
+	else:
 		return get_amedas_data_typeB(node_obj, date)
 	
 
@@ -269,57 +260,49 @@ def main():
 		if arg.isdigit():
 			process_hour = int(arg)
 
+	# 予報する対象の時刻
+	target_time = 23
+	if 23 > process_hour >= 16:
+		target_time = 16
+
 
 	# アメダスの観測所オブジェクトを作成
 	amedas_nodes = amd.get_amedas_nodes()
 	#print(amedas_nodes)
 	# 観測データを読み出す
 	#node_A = amedas_nodes["阿蘇山"]
-	node_A = amedas_nodes["熊本"]        # 2015-09の噴火で阿蘇山頂のデータが得られないので、熊本に差し替え
+	node_A = amedas_nodes["47819"]     # 47819 熊本
 	lines_A = get_amedas_data(node_A, target_date)
-	node_B = amedas_nodes["阿蘇乙姫"]
+	node_B = amedas_nodes["1240"]      # 1240 阿蘇乙姫
 	lines_B = get_amedas_data(node_B, target_date)
 	# 観測データを処理して、特徴量の生成に適したオブジェクトに変更
 	weather_data_A = feature.get_weather_dict(lines_A)
 	weather_data_B = feature.get_weather_dict(lines_B)
-	raw_data = [weather_data_A, weather_data_B]
+	raw_data = {"47819":[weather_data_A, feature.index_A], "1240":[weather_data_B, feature.index_B]}
+	fg_obj = feature.feature_generator(target_time, raw_data)
 	#print(weather_data_Aso)
 	#print(weather_data_Otohime)
 
-
 	# 機械学習オブジェクトを生成
-	clf = ml()	
-	if 23 > process_hour >= 16:
-		with open('entry_16.pickle', 'rb') as f:
-			clf = pickle.load(f)               # オブジェクト復元
-	else:
-		with open('entry_23.pickle', 'rb') as f:
-			clf = pickle.load(f)               # オブジェクト復元
-
+	clf = mc.load(os.path.abspath("./learned_machine/time" + str(target_time)))
+	print(type(clf))
 
 	# 特徴ベクトルを生成
-	_feature = None
-	if 23 > process_hour >= 16:
-		_feature = feature.create_feature16(target_date, raw_data)
-	else:
-		_feature = feature.create_feature23(target_date, raw_data)
+	_feature = feature_generator.get_feature(target_date)
+	_feature = np.array([_feature]) # TensorFlowはnumpy.arrayの2重の入れ子でないと動かない
 	print(_feature)
 
 	# 予測を実施
 	print("--predict--")
 	print("target date: " + str(target_date))
 	print("process hur: " + str(process_hour))
-	done = False
+
 	results = []
-	if _feature != None:
-		if not None in _feature:  # Noneがあると計算出来ない
-			test = clf.predict(_feature)
-			results.append((target_date, test[0], _feature))
-			print(test)
-			done = True
-	if done == False:
-		results.append((target_date, "NA", _feature))
-		print("--can't predict. There is None data in feature-vector.--")
+	#if _feature != None:
+	#if not None in _feature:  # Noneがあると計算出来ない
+	test = clf.predict(_feature)
+	results.append((target_date, test[0], _feature))
+	print(test)
 
 
 	# 予測結果を保存

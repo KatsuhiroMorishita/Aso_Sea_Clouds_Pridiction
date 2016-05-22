@@ -2,14 +2,17 @@
 # -*- coding: utf-8 -*-
 #----------------------------------------
 # name: learning
-# purpose: 雲海の出現を予測するためにランダムフォレストオブジェクトを学習させる
+# purpose: 雲海の出現を予測するために機械学習器を学習させる
 # author: Katsuhiro MORISHITA, 森下功啓
 # memo: 読み込むデータは、1行目にラベルがあり、最終列に層名が入っていること。
 # created: 2015-08-08
 # lisence: MIT
 #----------------------------------------
 import pandas
-from sklearn.ensemble import RandomForestRegressor as ml
+import skflow
+from sklearn import preprocessing
+import numpy as np
+import machine as mc
 
 
 def read_training_data(teaching_file_path):
@@ -26,29 +29,33 @@ def read_training_data(teaching_file_path):
 
 
 def learn(teaching_data, save_file_path):
-	# 学習実行
+	# 学習データの用意
 	trainFeature, trainLabel = teaching_data
-	clf = ml(max_features="auto")#, max_depth=7)
-	clf.fit(trainFeature, trainLabel)
+	hoge = [np.array(x) for x in trainFeature] # リストをnumpyのarray型へ変換
+	trainFeature = np.array(hoge)
+	trainLabel = np.array(trainLabel)
+	clf = mc.new()                     # 学習器の新規作成
+	X = trainFeature
+	#X = preprocessing.StandardScaler().fit_transform(trainFeature)
+	clf.fit(X, trainLabel)             # 学習実行
 
 	# 学習成果を保存
-	import pickle
-	with open(save_file_path, 'wb') as f:
-		pickle.dump(clf, f)
+	mc.save(clf, save_file_path)
 
 	# 学習結果を確認のために表示
-	test = clf.predict(trainFeature[2])             # 試しに一つ確認
+	print(X[2:3])
+	test = clf.predict(X[2:3])          # 試しに一つ確認
 	print(test)
-	result = clf.score(trainFeature, trainLabel)	# 学習データに対する、適合率
+	result = clf.score(X, trainLabel)	# 学習データに対する、適合率
 	print(result)
-	print(clf.feature_importances_)	                # 各特徴量に対する寄与度を求める
+	#print(clf.feature_importances_)	                # 各特徴量に対する寄与度を求める
 
 	return clf
 
 
 def main():
 	training_data = read_training_data("teaching_data.csv")
-	learn(training_data, 'entry_temp.pickle')
+	learn(training_data, mc.default_path)
 
 if __name__ == '__main__':
 	main()

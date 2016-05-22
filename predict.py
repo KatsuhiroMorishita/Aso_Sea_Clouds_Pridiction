@@ -2,26 +2,27 @@
 # -*- coding: utf-8 -*-
 #----------------------------------------
 # name: predict
-# purpose: ランダムフォレストを用いて、雲海出現を予測する。学習成果の検証用スクリプト。
+# purpose: 雲海出現を予測する。学習成果の検証用スクリプト。
 # author: Katsuhiro MORISHITA, 森下功啓
 # created: 2015-08-08
 # lisence: MIT
 #----------------------------------------
 import pandas
 import pickle
-from sklearn.ensemble import RandomForestRegressor
 import datetime
 import feature
+import machine as mc
+import numpy as np
 
 
 
-def predict(clf, date_list, feature_generation_func, raw_data, save=False):
+def predict(clf, date_list, feature_generator, save=False):
 	""" 引数で渡された日付の特徴量を作成して、渡された学習済みの学習器に入力して識別結果を返す
 	"""
 	results = {}
 	for _date in date_list:
 		#print(_date)
-		_feature = feature_generation_func(_date, raw_data)
+		_feature = feature_generator.get_feature(_date)
 		#print(_feature)
 		if _feature != None:
 			if not None in _feature:      # Noneを渡すとエラーが帰るので対策
@@ -61,15 +62,13 @@ def predict2(clf, date_list, features_dict, save=False):
 		#print(_date)
 		date, _feature, label = features_dict[_date]
 		#print(_feature)
-		if _feature != None:
-			if not None in _feature:      # Noneを渡すとエラーが帰るので対策
-				test = clf.predict(_feature)
-				results[_date] = test[0]
-				print(_date, test)
-			else:                         # 推定ができなくても、ファイルに書き出すことで正解との比較がやりやすい
-				print("--feature has None!--")
-				print(_feature)
-				results[_date] = None
+		if not _feature is None:
+			_feature = np.array(_feature) # リストをnumpyのarray型へ変換
+			_feature = np.array([_feature, ])
+			print(_feature)
+			test = clf.predict(_feature)
+			results[_date] = test[0]
+			print(_date, test)
 		else:
 			print("--feature is None!--") # 殆ど無いんだが、一応対応
 			results[_date] = None
@@ -103,20 +102,18 @@ def date_range(date_start, date_end):
 
 
 def main():
-	# 機械学習オブジェクトを生成
-	clf = RandomForestRegressor()
-	with open('entry_temp.pickle', 'rb') as f:# 学習成果を読み出す
-		clf = pickle.load(f)               # オブジェクト復元
+	# 機械学習オブジェクトを生成（復元）
+	clf = mc.load(mc.default_path)
 
-	# 気象データの読み込み
-	raw_data = feature.read_raw_data()
+	# 特徴生成オブジェクト作成
+	fg_obj = feature.feature_generator(23)
 
-	predict(\
-		clf, \
-		date_range(datetime.datetime(2015, 6, 23), datetime.datetime(2015, 10, 24)), \
-		feature.create_feature23, \
-		raw_data, \
-		True)
+	predict(
+		clf, 
+		date_range(datetime.datetime(2015, 6, 23), datetime.datetime(2015, 10, 24)), 
+		fg_obj, 
+		True
+		)
 
 if __name__ == '__main__':
 	main()

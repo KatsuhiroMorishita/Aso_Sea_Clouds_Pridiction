@@ -1,0 +1,4 @@
+input:0
+output:0
+logistic_regression/softmax_classifier/Softmax:0
+logistic_regression/softmax_classifier/softmax_loss:0

@@ -7,9 +7,10 @@
 # license: MIT
 #-------------------------------------------
 from datetime import datetime as dt
+import os
 import sys
 import glob
-import pickle
+import machine as mc
 import numpy
 
 import predict
@@ -26,7 +27,7 @@ def check_date(terms, date):
 	return False
 
 
-def read_correct_and_create_features(feature_func, raw_data, terms, fname="unkai_date.csv"):
+def read_correct_and_create_features(feature_generator, terms, fname="unkai_date.csv"):
 	""" 正解データを読み込んで、特徴ベクトルと共に返す
 	raw_data: 気象データ
 	"""
@@ -38,7 +39,8 @@ def read_correct_and_create_features(feature_func, raw_data, terms, fname="unkai
 			line = line.rstrip()
 			date, value, verify_flag = line.split("\t")
 			if value == "x":
-				continue
+				#continue
+				value = 0# あまりに欠損が多いので、Twitterを信じるなら出なかったものとして扱ってOKだと思う.
 			date = timeKM.getTime(date + " 0:0:0")
 			if check_date(terms, date):
 				data[date] = [value, verify_flag]
@@ -47,25 +49,25 @@ def read_correct_and_create_features(feature_func, raw_data, terms, fname="unkai
 	dates = sorted(data.keys())
 	for _date in dates:
 		#print(_date)
-		_feature = feature_func(_date, raw_data) # 特徴ベクトルを作る
+		_feature = feature_generator.get_feature(_date) # 特徴ベクトルを作る
 		#print(_feature)
-		if _feature != None:
+		if not _feature is None:
 			data[_date].append(_feature)
 
 	return data
 
 
-def sub_process(tag_name, target_dir, feature_func, raw_data, terms):
+def sub_process(tag_name, target_dir, feature_generator, terms):
 	""" 保存されている学習器を次々と読みだして評価結果をファイルに保存する
 	"""
-	flist = glob.glob(target_dir + "/*f" + tag_name + "*.pickle") # 学習器のファイルリストを取得
+	flist = mc.get_path_list(target_dir) # 学習器のファイルリストを取得
 	print(flist)
 	if len(flist) == 0:
-		print("0 file found.")
+		print("0 files or dir found.")
 		return
 
 	# 正解データと特徴ベクトルを取得
-	data = read_correct_and_create_features(feature_func, raw_data, terms)
+	data = read_correct_and_create_features(feature_generator, terms)
 
 	# 評価用に特徴ベクトルを辞書に格納しなおす
 	dates = sorted(data.keys())
@@ -75,42 +77,49 @@ def sub_process(tag_name, target_dir, feature_func, raw_data, terms):
 
 	# 予想結果を格納する
 	predicted_result_dict = {}
-	for fname in flist:
+	for fpath in flist:
 		# 学習器を読みだして復元
-		clf = None
-		with open(fname, 'rb') as f:
-			clf = pickle.load(f)    # オブジェクト復元
+		clf = mc.load(fpath)    # オブジェクト復元
 		predicted_result = predict.predict2(clf, dates, features_dict)
-		predicted_result_dict[fname] = predicted_result
+		predicted_result_dict[fpath] = predicted_result
 
 	# 結果をファイルに保存
 	report_path = target_dir + "/learned_machine_report.csv"
 	with open(report_path, "w") as fw:
 		# 閾値を変えつつ集計
-		for th in numpy.arange(0.5, 0.6, 0.1): # th: 閾値
+		for th in numpy.arange(0.3, 0.7, 0.1): # th: 閾値
 			result = {}                        # 閾値で2値化した結果を格納する
-			for fname in flist:
-				predicted_result = predicted_result_dict[fname]
-				if fname not in result:
-					result[fname] = []
+			correct = []
+			for fpath in flist:
+				predicted_result = predicted_result_dict[fpath]
+				if fpath not in result:
+					result[fpath] = []
+				correct = []
 				for _date in dates:
 					if _date in predicted_result:
 						c = data[_date][0]
+						correct.append(c)
 						val = float(c) - int((1.0 - th) + predicted_result[_date])
-						result[fname].append(val)
+						result[fpath].append(val)
 
 			# 日付を書き込む
 			dates_arr = [str(x) for x in dates]
 			_str = ",".join(dates_arr)
-			fw.write(",,")
+			fw.write(",date,")
+			fw.write(_str)
+			fw.write("\n")
+			# 正解を書き込む
+			correct = [str(c) for c in correct]
+			_str = ",".join(correct)
+			fw.write(",correct,")
 			fw.write(_str)
 			fw.write("\n")
 			# 結果を書き込む
-			for fname in flist:
-				th_data = result[fname]
+			for fpath in flist:
+				th_data = result[fpath]
 				th_data = [str(x) for x in th_data]
 				_str = ",".join(th_data)
-				fw.write(fname)          # Excelで閲覧した時に分離させる
+				fw.write(fpath)          # Excelで閲覧した時に分離させる
 				fw.write(",")
 				fw.write(str(th))
 				fw.write(",")
@@ -123,25 +132,15 @@ def main_process(target_time, target_dir):
 	""" 
 	外部からの呼び出しを意識している。
 	"""
-	# 特徴ベクトルの生成に必要なデータ（例：アメダスの観測データ）を読みだす
-	raw_data = feature.read_raw_data()
-
 	# 処理対象の制限（処理時間の短縮になるかも）
 	#terms = [(dt(2011, 6, 24), dt(2013, 6, 23)), (dt(2015, 6, 23), dt(2016, 1, 16))]
-	terms = [(dt(2015, 12, 1), dt(2016, 2, 15))]
+	terms = [(dt(2016, 5, 1), dt(2016, 5, 19))]
 
 	# 引数に合わせて使う特徴ベクトル生成関数を変えて、検証する
-	report_paths = []
-	if target_time == "16": # 
-		feature_func = feature.create_feature16
-		_path = sub_process(target_time, target_dir, feature_func, raw_data, terms)
-		report_paths.append(_path)
-	elif target_time == "23":
-		feature_func = feature.create_feature23
-		sub_process(target_time, target_dir, feature_func, raw_data, terms)
-		report_paths.append(_path)
+	fg_obj = feature.feature_generator(target_time)
+	_path = sub_process(target_time, target_dir, fg_obj, terms)
 
-	return report_paths
+	return [_path]
 
 
 
@@ -160,6 +159,9 @@ def main():
 		print("input target-number and target-dir.")
 		exit()
 
+	if not os.path.exists(target_dir):
+		print("no such directry: ", target_dir)
+		exit()
 	main_process(target_time, target_dir)
 
 
