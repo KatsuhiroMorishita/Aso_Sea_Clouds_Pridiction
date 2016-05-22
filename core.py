@@ -269,17 +269,17 @@ def main():
 	# アメダスの観測所オブジェクトを作成
 	amedas_nodes = amd.get_amedas_nodes()
 	#print(amedas_nodes)
-	# 観測データを読み出す
-	#node_A = amedas_nodes["阿蘇山"]
-	node_A = amedas_nodes["47819"]     # 47819 熊本
-	lines_A = get_amedas_data(node_A, target_date)
-	node_B = amedas_nodes["1240"]      # 1240 阿蘇乙姫
-	lines_B = get_amedas_data(node_B, target_date)
-	# 観測データを処理して、特徴量の生成に適したオブジェクトに変更
-	weather_data_A = feature.get_weather_dict(lines_A)
-	weather_data_B = feature.get_weather_dict(lines_B)
-	raw_data = {"47819":[weather_data_A, feature.index_A], "1240":[weather_data_B, feature.index_B]}
-	fg_obj = feature.feature_generator(target_time, raw_data)
+	# 特徴ベクトルを生成するオブジェクトの用意
+	features_dict = {}
+	for block_no in ["47819", "1240", "0962", "47818"]:
+		node = amedas_nodes[block_no]
+		lines = get_amedas_data(node, target_date)
+		weather_data = feature.get_weather_dict(lines)
+		if int(node.block_no) > 47000:
+			features_dict[block_no] = [weather_data, feature.index_A]
+		else:
+			features_dict[block_no] = [weather_data, feature.index_B]
+	fg_obj = feature.feature_generator(target_time, features_dict)
 	#print(weather_data_Aso)
 	#print(weather_data_Otohime)
 
@@ -288,7 +288,7 @@ def main():
 	print(type(clf))
 
 	# 特徴ベクトルを生成
-	_feature = feature_generator.get_feature(target_date)
+	_feature = fg_obj.get_feature(target_date)
 	_feature = np.array([_feature]) # TensorFlowはnumpy.arrayの2重の入れ子でないと動かない
 	print(_feature)
 
