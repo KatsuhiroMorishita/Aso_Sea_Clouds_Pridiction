@@ -45,7 +45,7 @@ def _get_new_path():
 def new():
 	""" 初期化した機械学習オブジェクトを返す
 	"""
-	clf = ml(hidden_units=[40, 20, 15, 10, 20, 10, 20, 10], n_classes=2, learning_rate = 0.01, steps=5000) # TensorFlow
+	clf = ml(hidden_units=[40, 20, 15, 10, 20, 10, 20, 10], n_classes=2, learning_rate = 0.05, steps=5000) # TensorFlow
 	return clf
 	"""
 	def my_model(X, y):

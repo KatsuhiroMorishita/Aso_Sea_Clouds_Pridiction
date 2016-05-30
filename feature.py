@@ -15,6 +15,7 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 import math
 import copy
+import re
 import timeKM
 
 
@@ -28,9 +29,8 @@ def get_season(_date):
 	return int((_date - datetime.datetime(_date.year, 1, 1)).total_seconds() / (7 * 24 * 3600))
 
 
-
 def get_measurement_value(_date, data_set, target_index):
-	""" 前日のhour時の観測値
+	""" 指定日時の観測値を返す
 	"""
 	weather_data, _index = data_set
 	one_data = weather_data[_date]
@@ -56,6 +56,14 @@ def get_diff(time1, time2, data_set, target_index):
 	else:
 		return v1 - v2
 
+def minus(v1, v2):
+	""" ２つの値の差分を返す
+	"""
+	if v1 is None or v2 is None:
+		return None
+	else:
+		return v1 - v2
+
 
 def get_diff2(time, data_set1, data_set2, target_index):
 	""" 2つのデータセット間の差分を取る
@@ -69,7 +77,7 @@ def get_diff2(time, data_set1, data_set2, target_index):
 
 
 
-def get_values(origin_time, _weather_data, key, term_hours=range(1, 25)):
+def get_values(origin_time, data_set, key, term_hours=range(1, 25)):
 	""" origin_timeからterm_hoursで指定した時間前の観測データをリストとして返す
 	"""
 	weather_data, _index = data_set
@@ -89,119 +97,38 @@ def get_values(origin_time, _weather_data, key, term_hours=range(1, 25)):
 	return values
 
 
-def get_average_wether(_date, _weather_data, key, term_hours=72):
-	""" 平均観測値
-	集計の仕方が不味いと思うが、まぁ動いているからいいや。
+def get_average(origin_time, data_set, key, term_hours=range(0, 24), remove=["休止中", "#", None]):
+	""" 観測値の平均を返す
 	"""
-	weather_data, _index = data_set
-	#__date = dt(_date.year, _date.month, _date.day) - td(hours=term_hours)
-	__date = _date - td(hours=term_hours)
-	values = []
-	for i in range(term_hours):
-		if __date not in weather_data:
-			return None
-		one_data = weather_data[__date]
-		#print(one_data)
-		if one_data == None:
-			return None
-		values.append(one_data[_index[key]])
-		__date += td(hours=1)
-	#print(values)
-	if not None in values:
-		return sum(values) / float(len(values))
-	else:
-		return None
-
-
-
-def get_average_temperature_3days(_date, data_set):
-	""" 3日間の平均気温
-	集計の仕方が不味いと思うが、まぁ動いているからいいや。
-	"""
-	weather_data, _index = data_set
-	__date = _date - datetime.timedelta(days=3)
-	temperature = []
-	while __date < _date:
-		one_data = weather_data[__date]
-		if one_data == None:
-			return
-		temperature.append(one_data[_index["気温"]])
-		__date += datetime.timedelta(hours=1)
-	#print(temperature)
-	if not None in temperature:
-		return sum(temperature) / float(len(temperature))
-	else:
-		return None
-
-
-def get_rain_3days(_date, data_set):
-	""" 3日間の降水量
-	"""
-	weather_data, _index = data_set
-	__date = _date - datetime.timedelta(days=3)
-	rain = []
-	while __date < _date:
-		one_data = weather_data[__date]
-		if one_data == None:
-			return
-		rain.append(one_data[_index["降水量"]])
-		__date += datetime.timedelta(hours=1)
-	#print(rain)
-	if not None in rain:
-		return sum(rain)
-	else:
-		return None
-
-
-def get_sunshine_preOneDay(_date, data_set):
-	""" 前日の日照時間の累積
-	"""
-	weather_data, _index = data_set
-	__date = _date - datetime.timedelta(days=1)
-	sunshine = []
-	while __date < _date:
-		one_data = weather_data[__date]
-		if one_data == None:
-			return
-		#print(one_data)
-		if len(one_data) > _index["日照時間"]: # 欠測対策
-			sunshine.append(one_data[_index["日照時間"]])
-		else:
-			sunshine.append(0.0)
-		__date += datetime.timedelta(hours=1)
-	#print(sunshine)
-	if not None in sunshine:
-		return sum(sunshine)
-	else:
-		return None
-
-
-
-
-def get_average_wind(_date, hour, data_set):
-	""" 前日の(hour-2)～hour時における平均風速
-	"""
-	weather_data, _index = data_set
-	_date -= datetime.timedelta(days=1)
-	time = _date + datetime.timedelta(hours=hour-2)
-	time_end = _date + datetime.timedelta(hours=hour)
-	wind = []
-	while time <= time_end:
-		one_data = weather_data[time]
-		if one_data == None:
-			return
-		wind.append(one_data[_index["風速"]])
-		time += datetime.timedelta(hours=1)
-	#print(wind)
-	if None in wind:
+	values = get_values(origin_time, data_set, key, term_hours)
+	_values = []
+	for val in values:
+		if val in remove:
+			continue
+		_values.append(val)
+	if len(_values) == 0:
 		return None
 	else:
-		return sum(wind) / float(len(wind))
+		return sum(_values) / float(len(_values))
 
+
+def get_someone(origin_time, data_set, key, term_hours, func):
+	""" 観測値の平均を返す
+	"""
+	values = get_values(origin_time, data_set, key, term_hours)
+	_values = []
+	for val in values:
+		if val in ["休止中", "#", None]:
+			continue
+		_values.append(val)
+	if len(_values) == 0:
+		return None
+	else:
+		return func(_values)
 
 
 def get_TTd(_date, hour, data_set):
-	""" 前日のhour時における湿数
+	""" 前日のhour時における湿数を返す
 	"""
 	weather_data, _index = data_set
 	_date -= datetime.timedelta(days=1)
@@ -215,64 +142,6 @@ def get_TTd(_date, hour, data_set):
 	if T != None and Td != None:
 		TTd = T - Td
 	return TTd
-
-
-
-def get_diff_air_pressure(_date, hour, data_set):
-	""" 前日のhour時と前々日のhour時における気圧差
-	"""
-	weather_data, _index = data_set
-	_date -= datetime.timedelta(days=2)
-	_date += datetime.timedelta(hours=hour)
-	one_data = weather_data[_date]
-	if one_data == None:
-		return
-	pressure1 = one_data[_index["現地気圧"]]
-	_date += datetime.timedelta(hours=24) # 24時間後=前日のhour時
-	one_data = weather_data[_date]
-	if one_data == None:
-		return
-	pressure2 = one_data[_index["現地気圧"]]
-	if pressure1 == None or pressure2 == None:
-		return
-	return pressure1 - pressure2
-
-
-def get_bias_air_pressure(_date, hour, data_set, term_days=6):
-	""" 前日のhour時における気圧の平均からのズレ
-	"""
-	weather_data, _index = data_set
-	#print("--debug msg, get_bias_air_pressure_pointA--")
-	time = _date - datetime.timedelta(days=term_days)
-	time += datetime.timedelta(hours=hour)
-	#print(weather_data)
-	keys = sorted(weather_data.keys())
-	#print(keys)
-	#for i in range(100):
-	#	key = keys[i]
-	#	print(weather_data[key])
-	#exit()
-	p = []
-	while time < _date:
-		#print("--")
-		if not time in weather_data:
-			time += datetime.timedelta(days=1)
-			#print("A")
-			continue
-		#print(time)
-		one_data = weather_data[time]
-		if one_data == None:
-			time += datetime.timedelta(days=1)
-			#print("B")
-			continue
-		pressure = one_data[_index["現地気圧"]]
-		if pressure != None:               # 未観測ってことはたまにあるようだが、せっかくの学習データを減らしたくない
-			p.append(pressure)
-		time += datetime.timedelta(days=1)
-	if len(p) < 5:                        # 数はテキトー
-		return
-	average_p = sum(p) / float(len(p))     # pの中にNoneが入っているとエラー
-	return p[-1] - average_p               # 何もなければ、p[-1]は_dateの前日のhour時の観測データが入っている。もしかするとNoneで随分離れた時刻ってこともあるかもしれないが・・・。笑
 
 
 
@@ -313,11 +182,13 @@ def get_weather_dict(lines):
 		new_field = []
 		for mem in field:
 			#print(mem)
+			if "東" in mem or "西" in mem or "南" in mem or "北" in mem:
+				mem = re.sub(" |　|[)]", "", mem)
 			fuga = mem.replace(".", "")
 			fuga = fuga.replace(" )", "")            # 観測上のおかしなデータにくっつく記号
-			if len(fuga) > 0:
-				if "-" == fuga[0]:
-					fuga = fuga[1:]
+			#if len(fuga) > 0:
+			#	if "-" == fuga[0]:
+			#		fuga = fuga[1:]
 			fuga = fuga.replace("-", "")             # -10, 10-　みたいなパターン。数値の前のマイナス符号があれば負値。
 			fuga = fuga.replace("+", "")             # +10, 10+　みたいなパターン。
 			if fuga.isdigit() == True:
@@ -376,7 +247,7 @@ def create_feature23(_date, weather_library):
 	print("23:00, feature of ", _date)
 	weather_kumamoto = weather_library["47819"]
 	weather_asootohime = weather_library["1240"]
-	weather_hugendake = weather_library["47818"]
+	weather_unzendake = weather_library["47818"]
 	weather_shimabara = weather_library["0962"]
 	#print(str(weather_kumamoto[_date]))
 	pre_date = _date - td(days=1)
@@ -391,38 +262,31 @@ def create_feature23(_date, weather_library):
 	_feature += [get_measurement_value(dt(y, m, d, 23), weather_kumamoto, "気温")]
 	_feature += [get_diff(dt(y, m, d, 14), dt(y, m, d, 23), weather_kumamoto, "気温")]
 	_feature += [get_diff(dt(y, m, d, 14), dt(y, m, d, 23), weather_asootohime, "気温")]
-	_feature += [get_diff2(dt(y, m, d, 23), weather_hugendake, weather_shimabara, "気温")]
-	_feature += [get_average_temperature_3days(_date, weather_asootohime)]
-	_feature += [get_average_temperature_3days(_date, weather_asootohime)]
-	_feature += [get_rain_3days(_date, weather_asootohime)]
-	_feature += [get_sunshine_preOneDay(_date, weather_asootohime)]
+	_feature += [get_diff2(dt(y, m, d, 23), weather_unzendake, weather_shimabara, "気温")]
+	_feature += [get_average(dt(y, m, d, 23), weather_asootohime, "気温", range(0, 72))]
+	_feature += [get_average(dt(y, m, d, 23), weather_asootohime, "降水量", range(0, 72))]
+	_feature += [get_average(dt(y, m, d, 23), weather_asootohime, "降水量", range(0, 24))]
+	_feature += [get_average(dt(y, m, d, 23), weather_asootohime, "日照時間", range(0, 24))]
 	_feature += [get_measurement_value(dt(y, m, d, 16), weather_asootohime, "風速")]
 	_feature += [get_measurement_value(dt(y, m, d, 16), weather_asootohime, "風向")]
 	_feature += [get_measurement_value(dt(y, m, d, 23), weather_asootohime, "風速")]
 	_feature += [get_measurement_value(dt(y, m, d, 23), weather_asootohime, "風向")]
-	_feature += [get_measurement_value(dt(y, m, d, 23), weather_hugendake, "風速")]
-	_feature += [get_average_wind(_date, 23, weather_kumamoto)]
+	_feature += [get_measurement_value(dt(y, m, d, 23), weather_unzendake, "風速")]
+	_feature += [get_average(dt(y, m, d, 23), weather_asootohime, "風速", range(1, 3))]
 	_feature += [get_measurement_value(dt(y, m, d,  6), weather_kumamoto, "露点温度")]
 	_feature += [get_measurement_value(dt(y, m, d, 16), weather_kumamoto, "露点温度")]
 	_feature += [get_measurement_value(dt(y, m, d, 23), weather_kumamoto, "露点温度")]
-	#_feature += [get_measurement_value(dt(y, m, d,  6), weather_kumamoto, "海面気圧")]
-	#_feature += [get_measurement_value(dt(y, m, d, 16), weather_kumamoto, "海面気圧")]
-	#_feature += [get_measurement_value(dt(y, m, d, 23), weather_kumamoto, "海面気圧")]
 	_feature += [get_TTd(_date, 14, weather_kumamoto)]
 	_feature += [get_TTd(_date, 23, weather_kumamoto)]
+	_feature += [get_TTd(_date, 14, weather_unzendake)]
+	_feature += [get_TTd(_date, 23, weather_unzendake)]
 	_feature += [get_measurement_value(dt(y, m, d, 16), weather_kumamoto, "蒸気圧")]
-	_feature += [get_diff_air_pressure(_date, 23, weather_kumamoto)]
-	_feature += [get_bias_air_pressure(_date, 23, weather_kumamoto)]
+	_feature += [get_diff(dt(y, m, d, 22), dt(y, m, d, 23), weather_kumamoto, "現地気圧")]
+	_feature += [minus(get_average(dt(y, m, d, 23), weather_unzendake, "現地気圧", range(0, 72)), get_measurement_value(dt(y, m, d, 23), weather_unzendake, "現地気圧"))]
 	_feature += [get_measurement_value(dt(y, m, d, 16), weather_kumamoto, "湿度")]
-	_feature += [get_measurement_value(dt(y, m, d,  6), weather_kumamoto, "視程")]
-	_feature += [get_measurement_value(dt(y, m, d, 15), weather_kumamoto, "視程")]
-	_feature += [get_measurement_value(dt(y, m, d, 21), weather_kumamoto, "視程")]
-	_feature += [get_measurement_value(dt(y, m, d, 21), weather_hugendake, "視程")]
-	_feature += [get_measurement_value(dt(y, m, d, 12), weather_kumamoto, "雲量")]
-	_feature += [get_measurement_value(dt(y, m, d, 21), weather_kumamoto, "雲量")]
-	#_feature += get_values(_date, weather_kumamoto, "気温", range(1, 24*10))
-	#_feature += get_values(_date, weather_kumamoto, "露点温度", range(1, 24*10))
-	#_feature += get_values(_date, weather_kumamoto, "日照時間", range(1, 24*10))
+	_feature += [get_measurement_value(dt(y, m, d,  6) - td(days=1), weather_kumamoto, "視程")]
+	_feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_unzendake, "視程")]
+	_feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_kumamoto, "雲量")]
 	#print("fuga")
 	_feature = [-math.e if x == None else x for x in _feature] # 欠損値を-eに置換
 	_feature = [-math.e if x == "休止中" else x for x in _feature] # 欠損値を-eに置換
@@ -439,6 +303,8 @@ def create_feature16(_date, weather_library):
 	print("16:00, feature of ", _date)
 	weather_kumamoto = weather_library["47819"]
 	weather_asootohime = weather_library["1240"]
+	weather_unzendake = weather_library["47818"]
+	weather_shimabara = weather_library["0962"]
 	pre_date = _date - td(days=1)
 	y, m, d = pre_date.year, pre_date.month, pre_date.day
 	_feature = []
@@ -447,23 +313,99 @@ def create_feature16(_date, weather_library):
 	_feature += [get_measurement_value(dt(y, m, d, 14), weather_asootohime, "気温")]
 	_feature += [get_measurement_value(dt(y, m, d,  6), weather_kumamoto, "気温")]
 	_feature += [get_measurement_value(dt(y, m, d, 14), weather_kumamoto, "気温")]
-	_feature += [get_average_temperature_3days(_date, weather_asootohime)]
-	_feature += [get_rain_3days(_date, weather_asootohime)]
-	_feature += [get_sunshine_preOneDay(_date, weather_asootohime)]
+	_feature += [get_diff(dt(y, m, d, 14), dt(y, m, d, 16), weather_kumamoto, "気温")]
+	_feature += [get_diff(dt(y, m, d, 14), dt(y, m, d, 16), weather_asootohime, "気温")]
+	_feature += [get_diff2(dt(y, m, d, 16), weather_unzendake, weather_shimabara, "気温")]
+	_feature += [get_average(dt(y, m, d, 16), weather_asootohime, "気温", range(0, 72))]
+	_feature += [get_average(dt(y, m, d, 16), weather_asootohime, "降水量", range(0, 72))]
+	_feature += [get_average(dt(y, m, d, 16), weather_asootohime, "降水量", range(0, 24))]
+	_feature += [get_average(dt(y, m, d, 16), weather_asootohime, "日照時間", range(0, 12))]
 	_feature += [get_measurement_value(dt(y, m, d, 16), weather_asootohime, "風速")]
 	_feature += [get_measurement_value(dt(y, m, d, 16), weather_asootohime, "風向")]
-	_feature += [get_average_wind(_date, 16, weather_kumamoto)]
+	_feature += [get_measurement_value(dt(y, m, d, 16), weather_unzendake, "風速")]
+	_feature += [get_measurement_value(dt(y, m, d, 16), weather_unzendake, "風向")]
+
+	_feature += [get_someone(dt(y, m, d, 16), weather_asootohime, "風速", range(0, 6), max)]
+	_feature += [get_someone(dt(y, m, d, 16), weather_asootohime, "気温", range(0, 6), max)]
+	_feature += [get_someone(dt(y, m, d, 16), weather_unzendake, "風速", range(0, 6), max)]
+	_feature += [get_someone(dt(y, m, d, 16), weather_unzendake, "気温", range(0, 6), max)]
+
+	_feature += [get_average(dt(y, m, d, 16), weather_asootohime, "風速", range(1, 3))]
 	_feature += [get_measurement_value(dt(y, m, d,  6), weather_kumamoto, "露点温度")]
 	_feature += [get_measurement_value(dt(y, m, d, 16), weather_kumamoto, "露点温度")]
-	_feature += [get_measurement_value(dt(y, m, d,  6), weather_kumamoto, "海面気圧")]
-	_feature += [get_measurement_value(dt(y, m, d, 16), weather_kumamoto, "海面気圧")]
+	_feature += [get_measurement_value(dt(y, m, d, 16), weather_kumamoto, "現地気圧")]
+	_feature += [get_TTd(_date, 14, weather_kumamoto)]
 	_feature += [get_TTd(_date, 16, weather_kumamoto)]
+	_feature += [get_TTd(_date, 14, weather_unzendake)]
+	_feature += [get_TTd(_date, 16, weather_unzendake)]
 	_feature += [get_measurement_value(dt(y, m, d, 16), weather_kumamoto, "蒸気圧")]
-	_feature += [get_diff_air_pressure(_date, 16, weather_kumamoto)]
-	_feature += [get_bias_air_pressure(_date, 16, weather_kumamoto)]
+	_feature += [get_diff(dt(y, m, d, 15), dt(y, m, d, 16), weather_kumamoto, "現地気圧")]
+	_feature += [minus(get_average(dt(y, m, d, 16), weather_unzendake, "現地気圧", range(0, 72)), get_measurement_value(dt(y, m, d, 16), weather_unzendake, "現地気圧"))]
 	_feature += [get_measurement_value(dt(y, m, d, 16), weather_kumamoto, "湿度")]
-	_feature += [get_measurement_value(dt(y, m, d,  6), weather_kumamoto, "視程")]
-	_feature += [get_measurement_value(dt(y, m, d, 15), weather_kumamoto, "視程")]
+	_feature += [get_measurement_value(dt(y, m, d,  6) - td(days=1), weather_kumamoto, "視程")]
+	_feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_unzendake, "視程")]
+	_feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_kumamoto, "雲量")]
+	#print("fuga")
+	_feature = [-math.e if x == None else x for x in _feature] # 欠損値を-eに置換
+	_feature = [-math.e if x == "休止中" else x for x in _feature] # 欠損値を-eに置換
+	_feature = [-math.e if x == "#" else x for x in _feature] # 欠損値を-eに置換
+	#print(_feature)
+	return np.array(_feature)
+
+
+
+def create_feature18(_date, weather_library):
+	""" 18時時点での予想を実施する特徴ベクトルを作る
+	16時と性能差があまりない。
+	_date: 予報対象日
+	"""
+	print("16:00, feature of ", _date)
+	weather_kumamoto = weather_library["47819"]
+	weather_asootohime = weather_library["1240"]
+	weather_unzendake = weather_library["47818"]
+	weather_shimabara = weather_library["0962"]
+	pre_date = _date - td(days=1)
+	y, m, d = pre_date.year, pre_date.month, pre_date.day
+	_feature = []
+	_feature += [get_season(_date)]
+	_feature += [get_measurement_value(dt(y, m, d,  6), weather_asootohime, "気温")]
+	_feature += [get_measurement_value(dt(y, m, d, 14), weather_asootohime, "気温")]
+	_feature += [get_measurement_value(dt(y, m, d, 18), weather_asootohime, "気温")]
+	_feature += [get_measurement_value(dt(y, m, d,  6), weather_kumamoto, "気温")]
+	_feature += [get_measurement_value(dt(y, m, d, 14), weather_kumamoto, "気温")]
+	_feature += [get_measurement_value(dt(y, m, d, 18), weather_kumamoto, "気温")]
+	_feature += [get_diff(dt(y, m, d, 14), dt(y, m, d, 18), weather_kumamoto, "気温")]
+	_feature += [get_diff(dt(y, m, d, 14), dt(y, m, d, 18), weather_asootohime, "気温")]
+	_feature += [get_diff2(dt(y, m, d, 18), weather_unzendake, weather_shimabara, "気温")]
+	_feature += [get_average(dt(y, m, d, 18), weather_asootohime, "気温", range(0, 72))]
+	_feature += [get_average(dt(y, m, d, 18), weather_asootohime, "降水量", range(0, 72))]
+	_feature += [get_average(dt(y, m, d, 18), weather_asootohime, "降水量", range(0, 24))]
+	_feature += [get_average(dt(y, m, d, 18), weather_asootohime, "日照時間", range(0, 12))]
+	_feature += [get_measurement_value(dt(y, m, d, 18), weather_asootohime, "風速")]
+	_feature += [get_measurement_value(dt(y, m, d, 18), weather_asootohime, "風向")]
+	_feature += [get_measurement_value(dt(y, m, d, 18), weather_unzendake, "風速")]
+	_feature += [get_measurement_value(dt(y, m, d, 18), weather_unzendake, "風向")]
+
+	_feature += [get_someone(dt(y, m, d, 18), weather_asootohime, "風速", range(0, 6), max)]
+	_feature += [get_someone(dt(y, m, d, 18), weather_asootohime, "気温", range(0, 6), max)]
+	_feature += [get_someone(dt(y, m, d, 18), weather_unzendake, "風速", range(0, 6), max)]
+	_feature += [get_someone(dt(y, m, d, 18), weather_unzendake, "気温", range(0, 6), max)]
+
+	_feature += [get_average(dt(y, m, d, 18), weather_asootohime, "風速", range(1, 3))]
+	_feature += [get_measurement_value(dt(y, m, d,  6), weather_kumamoto, "露点温度")]
+	_feature += [get_measurement_value(dt(y, m, d, 18), weather_kumamoto, "露点温度")]
+	_feature += [get_measurement_value(dt(y, m, d, 18), weather_kumamoto, "現地気圧")]
+	_feature += [get_TTd(_date, 14, weather_kumamoto)]
+	_feature += [get_TTd(_date, 18, weather_kumamoto)]
+	_feature += [get_TTd(_date, 14, weather_unzendake)]
+	_feature += [get_TTd(_date, 18, weather_unzendake)]
+	_feature += [get_measurement_value(dt(y, m, d, 18), weather_kumamoto, "蒸気圧")]
+	_feature += [get_diff(dt(y, m, d, 15), dt(y, m, d, 18), weather_kumamoto, "現地気圧")]
+	_feature += [minus(get_average(dt(y, m, d, 18), weather_unzendake, "現地気圧", range(0, 72)), get_measurement_value(dt(y, m, d, 18), weather_unzendake, "現地気圧"))]
+	_feature += [get_measurement_value(dt(y, m, d, 18), weather_kumamoto, "湿度")]
+	_feature += [get_measurement_value(dt(y, m, d,  6) - td(days=1), weather_kumamoto, "視程")]
+	_feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_unzendake, "視程")]
+	_feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_kumamoto, "雲量")]
 	#print("fuga")
 	_feature = [-math.e if x == None else x for x in _feature] # 欠損値を-eに置換
 	_feature = [-math.e if x == "休止中" else x for x in _feature] # 欠損値を-eに置換
@@ -485,10 +427,12 @@ class feature_generator:
 			self._data = load_weather_library(["47819", "1240", "0962", "47818"])
 		if time == 16:
 			self._gen_func.append(create_feature16)
+		elif time == 18:
+			self._gen_func.append(create_feature18)
 		elif time == 23:
 			self._gen_func.append(create_feature23)
 		else:
-			print("--target time error--")
+			print("--target time error--", time)
 			exit()
 
 	def get_feature(self, target_date):
@@ -499,8 +443,88 @@ class feature_generator:
 
 
 
+def get_vapor_pressure_saturation(Tb):
+	""" 水の沸点温度[deg]から、飽和水蒸気圧[hPa]を返す
+	気温を空気中の水の温度と仮定しても近い値が得られるようだ。
+	Tb 水の沸点[deg]
+	"""
+	try:
+		Tb = float(Tb)
+		P_torr = 10 ** (8.07131 - 1730.63 / (233.426 + Tb)) # https://ja.wikipedia.org/wiki/%E8%92%B8%E6%B0%97%E5%9C%A7
+		P_hPa = P_torr * 133.322368 / 100.0 # 圧力単位をTorrからhPaへ変換する。https://ja.wikipedia.org/wiki/%E3%83%88%E3%83%AB
+		#print(P_hPa)
+		return P_hPa
+	except:
+		pass
+
+def get_Tetens(t):
+	""" 気温から飽和水蒸気圧[hPa]を返す
+	http://www.s-yamaga.jp/nanimono/taikitoumi/kukichunosuijoki.htm#tetensの式, 同じベージのSonntagの式は間違っているとしか思えん。
+	"""
+	#T = t + 273.15
+	#E_hPa = (math.exp(-6096.9385 * T**-1 + 21.240942 - 2.711193 * 10**-2 + 1.673852 * 10**-5 * T**2 + 2.433502 * math.log(T))) / 100 # Sonntagの式?
+	
+	a = 7.5
+	b = 237.3
+	E_hPa = 6.11 * 10 ** (a * t/(b + t))
+	#print("飽和水蒸気圧", E_hPa)
+	return E_hPa
+
+def get_vapor_pressure(U, t):
+	""" 水蒸気圧[hPa]を求める
+	U 相対湿度[%]
+	t 気温[deg]
+	"""
+	return U / 100 * get_Tetens(t)
+
+
+def GofGra(t):
+	""" 気温から飽和水蒸気圧[hPa]を求める
+	氷点下では別の近似式を使った方が良いらしい。
+	http://d.hatena.ne.jp/Rion778/20121126/1353861179
+	tの単位：℃
+	get_vapor_pressure_xと同じ結果が返ってくるんだが・・・。
+	"""
+	water_vapor_at_saturation = 10 ** \
+	  (10.79574 * (1 - 273.16/(t + 273.15)) - \
+	   5.02800 * math.log10((t + 273.15)/273.16) + \
+	   1.50475 * 10**(-4) * (1-10**(-8.2969 * ((t + 273.15)/273.16 - 1))) + \
+	   0.42873 * 10**(-3) * (10**(4.76955*(1 - 273.16/(t + 273.15))) - 1) + \
+	   0.78614)
+	return water_vapor_at_saturation
+
+
+def get_dew_point(U, t):
+	""" 露点温度[deg]を返す
+	t 気温[deg]
+	U 相対湿度[%]
+	"""
+	dew_point_temperature = -(math.log(GofGra(t)*U/100/6.1078) * 237.3) / \
+		(math.log(GofGra(t)*U/100/6.1078) - 17.2693882)
+	return dew_point_temperature
+
+
 def main():
+	print(get_vapor_pressure(93, 20.2))
+	print(get_vapor_pressure(70, 27.4))
+	print(get_vapor_pressure_saturation(20.2))
+	print(get_vapor_pressure_saturation(27.4))
+	print(GofGra(20.2))
+	print(GofGra(27.4))
+	print(get_dew_point(94, 22.8))
+	print(get_dew_point(70, 27.4))
+	#exit()
 	weather_library = load_weather_library(["47819", "1240", "0962", "47818"])
+	weather_kumamoto = weather_library["47819"]
+	print("--wind--")
+	for i in range(24):
+		hoge = get_measurement_value(dt(2016, 1, 1,  i), weather_kumamoto, "風向")
+		print(hoge)
+	weather_asootohime = weather_library["1240"]
+	print("--temperature--")
+	for i in range(24):
+		hoge = get_measurement_value(dt(2015, 12, 18,  i), weather_asootohime, "気温")
+		print(hoge)
 	hoge = create_feature23(dt(2016, 1, 1, 0, 0, 0), weather_library)
 	print(hoge)
 	hoge = create_feature16(dt(2016, 1, 1, 0, 0, 0), weather_library)

@@ -166,46 +166,23 @@ def get_amedas_data_typeA(node_obj, date):
 		for mem in data:
 			P_hPa = ""
 			try:
-				Tb = float(mem[5])
-				#print("hoge")
-				#print(Tb)
-				P_torr = 10 ** (8.07131 - 1730.63 / (233.426 + Tb)) # https://ja.wikipedia.org/wiki/%E8%92%B8%E6%B0%97%E5%9C%A7
-				P_hPa = P_torr * 133.322368 / 100.0 # https://ja.wikipedia.org/wiki/%E3%83%88%E3%83%AB
-				#print(P_hPa)
+				t = float(mem[5]) # 気温[deg]
+				U = float(mem[8]) # 相対湿度[%]
+				P_hPa = feature.get_vapor_pressure(U, t)
 			except:
 				pass
 			mem[7] = P_hPa
 			dummy.append(mem)
 		data = dummy
 
-		# 露点温度を計算する
-		def GofGra(t):
-			""" 気温から飽和水蒸気量を求める
-			氷点下では別の近似式を使った方が良いらしい。
-			http://d.hatena.ne.jp/Rion778/20121126/1353861179
-			tの単位：℃
-			"""
-			water_vapor_at_saturation = 10 ** \
-			  (10.79574 * (1 - 273.16/(t + 273.15)) - \
-			   5.02800 * math.log10((t + 273.15)/273.16) + \
-			   1.50475 * 10**(-4) * (1-10**(-8.2969 * ((t + 273.15)/273.16 - 1))) + \
-			   0.42873 * 10**(-3) * (10**(4.76955*(1 - 273.16/(t + 273.15))) - 1) + \
-			   0.78614)
-			return water_vapor_at_saturation
-
+		# 露点温度
 		dummy = []
 		for mem in data: # http://d.hatena.ne.jp/Rion778/20121208/1354975888
 			dew_point_temperature = ""
 			try:
 				t = float(mem[5]) # 気温[deg]
 				U = float(mem[8]) # 相対湿度[%]
-				#print("@@@")
-				#print(t, U)
-				dew_point_temperature = -(math.log(GofGra(t)*U/100/6.1078) * 237.3) / \
-					(math.log(GofGra(t)*U/100/6.1078) - 17.2693882)
-				#print("fuga")
-				#print(U)
-				#print(dew_point_temperature)
+				dew_point_temperature = feature.get_dew_point(U, t)
 			except:
 				pass
 			mem[6] = dew_point_temperature
@@ -275,13 +252,14 @@ def main():
 		node = amedas_nodes[block_no]
 		lines = get_amedas_data(node, target_date)
 		weather_data = feature.get_weather_dict(lines)
+		_keys = sorted(weather_data.keys())       # 確認のために表示
+		for a_key in _keys:
+			print(block_no, weather_data[a_key])
 		if int(node.block_no) > 47000:
 			features_dict[block_no] = [weather_data, feature.index_A]
 		else:
 			features_dict[block_no] = [weather_data, feature.index_B]
 	fg_obj = feature.feature_generator(target_time, features_dict)
-	#print(weather_data_Aso)
-	#print(weather_data_Otohime)
 
 	# 機械学習オブジェクトを生成
 	clf = mc.load(os.path.abspath("./learned_machine/time" + str(target_time)))

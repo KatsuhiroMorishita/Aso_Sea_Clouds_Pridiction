@@ -219,7 +219,7 @@ node {
     value {
       shape {
         dim {
-          size: 35
+          size: 34
         }
         dim {
           size: 40
@@ -261,7 +261,7 @@ node {
             size: 2
           }
         }
-        tensor_content: "#\000\000\000(\000\000\000"
+        tensor_content: "\"\000\000\000(\000\000\000"
       }
     }
   }
@@ -290,7 +290,7 @@ node {
         dtype: DT_FLOAT
         tensor_shape {
         }
-        float_val: -0.29277002811431885
+        float_val: -0.2970442771911621
       }
     }
   }
@@ -319,7 +319,7 @@ node {
         dtype: DT_FLOAT
         tensor_shape {
         }
-        float_val: 0.29277002811431885
+        float_val: 0.2970442771911621
       }
     }
   }
@@ -13466,7 +13466,7 @@ node {
         dtype: DT_FLOAT
         tensor_shape {
           dim {
-            size: 35
+            size: 34
           }
           dim {
             size: 40
@@ -13505,7 +13505,7 @@ node {
     value {
       shape {
         dim {
-          size: 35
+          size: 34
         }
         dim {
           size: 40
