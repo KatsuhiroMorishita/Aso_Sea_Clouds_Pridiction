@@ -29,6 +29,20 @@ wait_seconds = 0.1                        # たまにプロキシ？ファイヤ
 
 
 
+def replace(data_list):
+	""" 文字列の要素からなるリストを走査して、都合の悪い文字を削除して返す
+	"""
+	new_data = []
+	for mem in data_list:
+		if "×" == mem:
+			new_data.append("nan")
+		elif "]" in mem:
+			new_data.append(mem.replace("]", ""))
+		else:
+			new_data.append(mem)
+	return new_data
+
+
 def get_passed_amedas_data(node_obj, date, term):
 	""" dateを起点として、term日分の観測データをダウンロードして返す
 	ただし、dateを起点とした過去のデータを返す。
@@ -50,6 +64,7 @@ def get_passed_amedas_data(node_obj, date, term):
 			continue
 		html_lines = html_txt.split("\n")
 		data = amp.get_data(html_lines, _date)
+		data = [replace(x) for x in data]
 		#print(data)
 		lines += [",".join(x) for x in data]
 	return lines
@@ -64,6 +79,7 @@ def get_amedas_data_typeB(node_obj, date):
 		html_txt = node_obj.get_data(_type="real-time")
 		html_lines = html_txt.split("\n")
 		data = amp.get_data(html_lines, dt.now())
+		data = [replace(x) for x in data]
 		print(data)
 		# 最新の観測データは過去の観測データとフォーマットが異なるので、整形する
 		# 降水量と気温を入れ替える
@@ -111,13 +127,17 @@ def get_amedas_data_typeA(node_obj, date):
 	_date = dt.now() + td(days=1)
 	if date.year == _date.year and date.month == _date.month and date.day == _date.day:
 		html_txt = node_obj.get_data(_type="real-time")
+		#with open("hogehoge.txt", "w", encoding="utf-8-sig") as fw: # debug
+		#	fw.write(html_txt)
 		html_lines = html_txt.split("\n")
 		data = amp.get_data(html_lines, dt.now())
+		data = [replace(x) for x in data]
 		print(data)
 		# 最新の観測データは過去の観測データとフォーマットが異なるので、整形する
 		# 気圧を入れ替える
 		dummy = []
 		for mem in data:
+			#print(mem)
 			x = mem.pop(8)
 			mem.insert(2, x)
 			mem.insert(3, "")

@@ -3,7 +3,7 @@
 #----------------------------------------
 # name: feature
 # purpose: 雲海出現を予測するために必要な特徴量を作成する
-# memo: 阿蘇の雲海発生の予想用です。
+# memo: 秩父に出現する雲海を予想するようです。
 # author: Katsuhiro MORISHITA, 森下功啓
 # created: 2015-08-08
 # lisence: MIT
@@ -18,7 +18,7 @@ import copy
 import re
 import timeKM
 
-target_list = ["47819", "1240", "0962", "47818"]
+target_list = ["1000", "47606", "47636", "47641", "47827"]
 
 index_B = {"時刻":0, "降水量":1, "気温":2, "風速":3, "風向":4, "日照時間":5}#, "降雪":6, "積雪":7}
 index_A = {"時刻":0, "現地気圧":1, "海面気圧":2, "降水量":3, "気温":4, "露点温度":5, "蒸気圧":6, "湿度":7, "風速":8, "風向":9, "日照時間":10, "全天日射量":11, "降雪":12, "積雪":13, "天気":14, "雲量":15, "視程":16}
@@ -246,48 +246,54 @@ def create_feature23(_date, weather_library):
 	""" 23時時点での予想を実施する特徴ベクトルを作る
 	"""
 	print("23:00, feature of ", _date)
-	weather_kumamoto = weather_library["47819"]
-	weather_asootohime = weather_library["1240"]
-	weather_unzendake = weather_library["47818"]
-	weather_shimabara = weather_library["0962"]
+	weather_mitsumine = weather_library["1000"]
+	weather_fushiki = weather_library["47606"]
+	weather_nagoya = weather_library["47636"]
+	weather_chichibu = weather_library["47641"]
+	weather_kagoshima = weather_library["47827"]
+
 	#print(str(weather_kumamoto[_date]))
 	pre_date = _date - td(days=1)
 	y, m, d = pre_date.year, pre_date.month, pre_date.day
 	_feature = []
 	_feature += [get_season(_date)]
-	_feature += [get_measurement_value(dt(y, m, d,  6), weather_asootohime, "気温")]
-	_feature += [get_measurement_value(dt(y, m, d, 14), weather_asootohime, "気温")]
-	_feature += [get_measurement_value(dt(y, m, d, 23), weather_asootohime, "気温")]
-	_feature += [get_measurement_value(dt(y, m, d,  6), weather_kumamoto, "気温")]
-	_feature += [get_measurement_value(dt(y, m, d, 14), weather_kumamoto, "気温")]
-	_feature += [get_measurement_value(dt(y, m, d, 23), weather_kumamoto, "気温")]
-	_feature += [get_diff(dt(y, m, d, 14), dt(y, m, d, 23), weather_kumamoto, "気温")]
-	_feature += [get_diff(dt(y, m, d, 14), dt(y, m, d, 23), weather_asootohime, "気温")]
-	_feature += [get_diff2(dt(y, m, d, 23), weather_unzendake, weather_shimabara, "気温")]
-	_feature += [get_average(dt(y, m, d, 23), weather_asootohime, "気温", range(0, 72))]
-	_feature += [get_average(dt(y, m, d, 23), weather_asootohime, "降水量", range(0, 72))]
-	_feature += [get_average(dt(y, m, d, 23), weather_asootohime, "降水量", range(0, 24))]
-	_feature += [get_average(dt(y, m, d, 23), weather_asootohime, "日照時間", range(0, 24))]
-	_feature += [get_measurement_value(dt(y, m, d, 16), weather_asootohime, "風速")]
-	_feature += [get_measurement_value(dt(y, m, d, 16), weather_asootohime, "風向")]
-	_feature += [get_measurement_value(dt(y, m, d, 23), weather_asootohime, "風速")]
-	_feature += [get_measurement_value(dt(y, m, d, 23), weather_asootohime, "風向")]
-	_feature += [get_measurement_value(dt(y, m, d, 23), weather_unzendake, "風速")]
-	_feature += [get_average(dt(y, m, d, 23), weather_asootohime, "風速", range(1, 3))]
-	_feature += [get_measurement_value(dt(y, m, d,  6), weather_kumamoto, "露点温度")]
-	_feature += [get_measurement_value(dt(y, m, d, 16), weather_kumamoto, "露点温度")]
-	_feature += [get_measurement_value(dt(y, m, d, 23), weather_kumamoto, "露点温度")]
-	_feature += [get_TTd(_date, 14, weather_kumamoto)]
-	_feature += [get_TTd(_date, 23, weather_kumamoto)]
-	_feature += [get_TTd(_date, 14, weather_unzendake)]
-	_feature += [get_TTd(_date, 23, weather_unzendake)]
-	_feature += [get_measurement_value(dt(y, m, d, 16), weather_kumamoto, "蒸気圧")]
-	_feature += [get_diff(dt(y, m, d, 22), dt(y, m, d, 23), weather_kumamoto, "現地気圧")]
-	_feature += [minus(get_average(dt(y, m, d, 23), weather_unzendake, "現地気圧", range(0, 72)), get_measurement_value(dt(y, m, d, 23), weather_unzendake, "現地気圧"))]
-	_feature += [get_measurement_value(dt(y, m, d, 16), weather_kumamoto, "湿度")]
-	_feature += [get_measurement_value(dt(y, m, d,  6) - td(days=1), weather_kumamoto, "視程")]
-	_feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_unzendake, "視程")]
-	_feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_kumamoto, "雲量")]
+	_feature += [get_measurement_value(dt(y, m, d,  6), weather_mitsumine, "気温")]
+	_feature += [get_measurement_value(dt(y, m, d, 14), weather_mitsumine, "気温")]
+	_feature += [get_measurement_value(dt(y, m, d, 23), weather_mitsumine, "気温")]
+	_feature += [get_measurement_value(dt(y, m, d,  6), weather_chichibu, "気温")]
+	_feature += [get_measurement_value(dt(y, m, d, 14), weather_chichibu, "気温")]
+	_feature += [get_measurement_value(dt(y, m, d, 23), weather_chichibu, "気温")]
+	_feature += [get_diff(dt(y, m, d, 14), dt(y, m, d, 23), weather_chichibu, "気温")]
+	_feature += [get_diff(dt(y, m, d, 14), dt(y, m, d, 23), weather_mitsumine, "気温")]
+	_feature += [get_diff2(dt(y, m, d, 23), weather_chichibu, weather_mitsumine, "気温")]
+	_feature += [get_average(dt(y, m, d, 23), weather_chichibu, "気温", range(0, 72))]
+	_feature += [get_average(dt(y, m, d, 23), weather_chichibu, "降水量", range(0, 72))]
+	_feature += [get_average(dt(y, m, d, 23), weather_chichibu, "降水量", range(0, 24))]
+	_feature += [get_average(dt(y, m, d, 23), weather_chichibu, "日照時間", range(0, 24))]
+	_feature += [get_average(dt(y, m, d, 18), weather_fushiki, "降水量", range(0, 6))]                  # 遠方の気象
+	_feature += [get_average(dt(y, m, d, 18), weather_nagoya, "降水量", range(0, 6))]                   # 遠方の気象
+	_feature += [get_average(dt(y, m, d, 23) - td(days=1), weather_kagoshima, "降水量", range(0, 24))]  # 遠方の気象
+	_feature += [get_average(dt(y, m, d, 18), weather_fushiki, "日照時間", range(0, 6))]                # 遠方の気象
+	_feature += [get_average(dt(y, m, d, 18), weather_nagoya, "日照時間", range(0, 6))]                 # 遠方の気象
+	_feature += [get_average(dt(y, m, d, 23) - td(days=1), weather_kagoshima, "日照時間", range(0, 24))] # 遠方の気象
+	_feature += [get_measurement_value(dt(y, m, d, 16), weather_chichibu, "風速")]
+	_feature += [get_measurement_value(dt(y, m, d, 16), weather_chichibu, "風向")]
+	_feature += [get_measurement_value(dt(y, m, d, 23), weather_chichibu, "風速")]
+	_feature += [get_measurement_value(dt(y, m, d, 23), weather_chichibu, "風向")]
+	_feature += [get_measurement_value(dt(y, m, d, 23), weather_mitsumine, "風速")]
+	_feature += [get_average(dt(y, m, d, 23), weather_mitsumine, "風速", range(1, 3))]
+	_feature += [get_measurement_value(dt(y, m, d,  6), weather_chichibu, "露点温度")]
+	_feature += [get_measurement_value(dt(y, m, d, 16), weather_chichibu, "露点温度")]
+	_feature += [get_measurement_value(dt(y, m, d, 23), weather_chichibu, "露点温度")]
+	_feature += [get_TTd(_date, 14, weather_chichibu)]
+	_feature += [get_TTd(_date, 23, weather_chichibu)]
+	_feature += [get_measurement_value(dt(y, m, d, 16), weather_chichibu, "蒸気圧")]
+	_feature += [get_diff(dt(y, m, d, 22), dt(y, m, d, 23), weather_chichibu, "現地気圧")]
+	_feature += [minus(get_average(dt(y, m, d, 23), weather_chichibu, "現地気圧", range(0, 72)), get_measurement_value(dt(y, m, d, 23), weather_chichibu, "現地気圧"))]
+	_feature += [get_measurement_value(dt(y, m, d, 16), weather_chichibu, "湿度")]
+	_feature += [get_measurement_value(dt(y, m, d,  6) - td(days=1), weather_chichibu, "視程")]
+	_feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_chichibu, "視程")]
+	_feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_chichibu, "雲量")]
 	#print("fuga")
 	_feature = [-math.e if x == None else x for x in _feature] # 欠損値を-eに置換
 	_feature = [-math.e if x == "休止中" else x for x in _feature] # 欠損値を-eに置換
@@ -306,6 +312,13 @@ def create_feature16(_date, weather_library):
 	weather_asootohime = weather_library["1240"]
 	weather_unzendake = weather_library["47818"]
 	weather_shimabara = weather_library["0962"]
+
+	weather_mitsumine = weather_library["1000"]
+	weather_fushiki = weather_library["47606"]
+	weather_nagoya = weather_library["47636"]
+	weather_chichibu = weather_library["47641"]
+	weather_kagoshima = weather_library["47827"]
+
 	pre_date = _date - td(days=1)
 	y, m, d = pre_date.year, pre_date.month, pre_date.day
 	_feature = []
@@ -529,7 +542,6 @@ def main():
 	print(hoge)
 	hoge = create_feature16(dt(2016, 1, 1, 0, 0, 0), weather_library)
 	print(hoge)
-
 
 if __name__ == '__main__':
 	main()

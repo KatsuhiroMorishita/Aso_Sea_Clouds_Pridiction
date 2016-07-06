@@ -133,8 +133,8 @@ def main_process(target_time, target_dir):
 	外部からの呼び出しを意識している。
 	"""
 	# 処理対象の制限（処理時間の短縮になるかも）
-	#terms = [(dt(2011, 6, 24), dt(2013, 6, 23)), (dt(2015, 6, 23), dt(2016, 1, 16))]
-	terms = [(dt(2016, 5, 1), dt(2016, 5, 19))]
+	#terms = [(dt(2016, 5, 1), dt(2016, 5, 19))] # for aso
+	terms = [(dt(2016, 4, 1), dt(2016, 6, 1))] # for chichibu
 
 	# 引数に合わせて使う特徴ベクトル生成関数を変えて、検証する
 	fg_obj = feature.feature_generator(target_time)
