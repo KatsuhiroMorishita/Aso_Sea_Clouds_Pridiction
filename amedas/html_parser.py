@@ -173,7 +173,7 @@ def get_data_from_lasted_format(lines):
                     line = line.replace("\t", "")
                     row += line
                     if "</tr>" in line:  # 文字列のパターンを探して、項目名と観測値を探す
-                        p = re.compile(">(?P<label>(?:[\w℃/\d.\-%\]×]+)|&nbsp;)</td>")
+                        p = re.compile(">(?P<label>(?:[\w℃/\d.\-%\]×)]+)|&nbsp;)</td>")
                         match = p.findall(row)
                         match = [x.replace("&nbsp;", "") for x in match] # 空白コードを置換
                         data.append(match)
