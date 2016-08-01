@@ -87,7 +87,7 @@ def sub_process(tag_name, target_dir, feature_generator, terms):
 	report_path = target_dir + "/learned_machine_report.csv"
 	with open(report_path, "w") as fw:
 		# 閾値を変えつつ集計
-		for th in numpy.arange(0.3, 0.7, 0.1): # th: 閾値
+		for th in numpy.arange(0.4, 0.9, 0.2): # th: 閾値
 			result = {}                        # 閾値で2値化した結果を格納する
 			correct = []
 			for fpath in flist:
@@ -134,7 +134,7 @@ def main_process(target_time, target_dir):
 	"""
 	# 処理対象の制限（処理時間の短縮になるかも）
 	#terms = [(dt(2016, 5, 1), dt(2016, 5, 19))] # for aso
-	terms = [(dt(2016, 4, 1), dt(2016, 6, 1))] # for chichibu
+	terms = [(dt(2016, 7, 1), dt(2016, 8, 1))] # for chichibu
 
 	# 引数に合わせて使う特徴ベクトル生成関数を変えて、検証する
 	fg_obj = feature.feature_generator(target_time)

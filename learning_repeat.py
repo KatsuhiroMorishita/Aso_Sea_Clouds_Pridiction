@@ -117,10 +117,10 @@ def main():
 		exit()
 
 	# 教師データ作成の準備
-	#terms = [(dt(2004, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2016, 5, 1))] # for aso
+	terms = [(dt(2004, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2016, 7, 1))] # for aso
 	#terms = [(dt(2010, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2016, 5, 1))] # for aso
 	#terms = [(dt(2015, 6, 23), dt(2016, 2, 1))] # for aso
-	terms = [(dt(2015, 3, 1), dt(2016, 4, 1))] # for chichibu
+	#terms = [(dt(2015, 3, 1), dt(2016, 4, 1))] # for chichibu
 
 	_save_flag = False # 検証用にファイルを残したいなら、Trueとする
 
