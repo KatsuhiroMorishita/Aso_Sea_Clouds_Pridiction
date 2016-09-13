@@ -41,8 +41,10 @@ def download():
 hours = []
 #for i in range(24): # 気象庁の予報はいつ更新されるか分からない・・・
 #	hours.append(td(hours=i, minutes=20, seconds=0))
+hours.append(td(hours=0, minutes=20, seconds=0))
 hours.append(td(hours=16, minutes=20, seconds=0))
 hours.append(td(hours=23, minutes=20, seconds=0))
+
 # 次にダウンロードすべき時刻　過去の時刻は全て未来の時刻に更新
 _next = []
 for mem in hours:

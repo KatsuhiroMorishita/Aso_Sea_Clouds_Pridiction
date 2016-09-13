@@ -11,13 +11,17 @@ import pandas
 import pickle
 import datetime
 import feature
-import machine as mc
 import numpy as np
 
+import machine as mc
 
 
 def predict(clf, date_list, feature_generator, save=False):
 	""" 引数で渡された日付の特徴量を作成して、渡された学習済みの学習器に入力して識別結果を返す
+	argvs:
+		clf: 機械学習器
+		date_list: 処理対象日が格納されたリスト
+		feature_generator: 特徴ベクトル生成器（日付を渡すと特徴ベクトルを作成するオブジェクト）
 	"""
 	results = {}
 	for _date in date_list:
@@ -54,8 +58,13 @@ def predict(clf, date_list, feature_generator, save=False):
 
 
 
-def predict2(clf, date_list, features_dict, save=False):
+def predict2(clf, date_list, features_dict, save=False, feature_display=True):
 	""" 引数で渡された日付の特徴量を作成して、渡された学習済みの学習器に入力して識別結果を返す
+	一度得直ベクトルを作成して、異なる学習器で何度も識別を行う場合に便利です。
+	argvs:
+		clf: 機械学習器
+		date_list: 処理対象日が格納されたリスト
+		feature_dict: 日付をキーとして特徴ベクトルが格納された辞書
 	"""
 	results = {}
 	for _date in date_list:
@@ -65,14 +74,14 @@ def predict2(clf, date_list, features_dict, save=False):
 		if not _feature is None:
 			_feature = np.array(_feature) # リストをnumpyのarray型へ変換
 			_feature = np.array([_feature, ])
-			print(_feature)
+			if feature_display:           # 特徴ベクトルの検討中は表示させたがいいかも
+				print(_feature)
 			test = clf.predict(_feature)
 			results[_date] = test[0]
 			print(_date, test)
 		else:
 			print("--feature is None!--") # 殆ど無いんだが、一応対応
 			results[_date] = None
-
 
 	# 予測結果を保存
 	if save:
