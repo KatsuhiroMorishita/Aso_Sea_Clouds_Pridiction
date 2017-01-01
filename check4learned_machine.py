@@ -218,7 +218,7 @@ def main_process(target_time, target_dir):
 	"""
 	# 処理対象の制限（処理時間の短縮になるかも）
 	#terms = [(dt(2016, 5, 1), dt(2016, 5, 19))] 
-	terms = [(dt(2016, 8, 1), dt(2016, 9, 8))] 
+	terms = [(dt(2016, 11, 1), dt(2016, 12, 17))] 
 
 	# 引数に合わせて使う特徴ベクトル生成関数を変えて、検証する
 	fg_obj = feature.feature_generator(target_time)

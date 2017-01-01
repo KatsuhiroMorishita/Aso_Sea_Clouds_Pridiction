@@ -13,8 +13,8 @@ from datetime import timedelta as td
 
 
 
-start = dt(year=2016, month=8, day=1)
-end = dt(year=2016, month=9, day=9)
+start = dt(year=2016, month=10, day=14)
+end = dt(year=2017, month=1, day=1)
 
 origin_url = "http://twilog.org/unkaitterbot/date-"
 
