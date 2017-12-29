@@ -1,3 +1,5 @@
 ignore
 amedas/ignore
 twilog_photo/*.jpg
+__pycache__
+.python-version
