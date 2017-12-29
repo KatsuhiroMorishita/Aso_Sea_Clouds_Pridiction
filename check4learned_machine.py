@@ -10,7 +10,7 @@ from datetime import datetime as dt
 import os
 import sys
 import glob
-import numpy
+import numpy as np
 import sklearn.metrics as mtr
 
 import machine as mc
@@ -61,81 +61,12 @@ def read_correct_and_create_features(feature_generator, terms, fname="unkai_date
     return data
 
 
-# 閾値と観測日毎の識別結果の誤りを保存する
-def sub_process(tag_name, target_dir, feature_generator, terms):
-    """ 保存されている学習器を次々と読みだして評価結果をファイルに保存する
-    """
-    flist = mc.get_path_list(target_dir) # 学習器のファイルリストを取得
-    print(flist)
-    if len(flist) == 0:
-        print("0 files or dir found.")
-        return
-
-    # 正解データと特徴ベクトルを取得
-    data = read_correct_and_create_features(feature_generator, terms)
-
-    # 評価用に特徴ベクトルを辞書に格納しなおす
-    dates = sorted(data.keys())
-    features_dict = {}                                      # 日付をキーとした特徴ベクトル
-    for _date in dates:
-        features_dict[_date] = (None, data[_date][2], None) # 特徴ベクトルが欲しいだけなので前後をダミーデータを入れている
-
-    # 予想結果を格納する
-    predicted_result_dict = {}
-    for fpath in flist:
-        # 学習器を読みだして復元
-        clf = mc.load(fpath)    # オブジェクト復元
-        predicted_result = predict.predict2(clf, dates, features_dict)
-        predicted_result_dict[fpath] = predicted_result
-
-    # 結果をファイルに保存
-    report_path = target_dir + "/learned_machine_report.csv"
-    with open(report_path, "w") as fw:
-        # 閾値を変えつつ集計
-        for th in numpy.arange(0.4, 0.9, 0.2): # th: 閾値
-            result = {}                        # 閾値で2値化した結果を格納する
-            correct = []
-            for fpath in flist:
-                predicted_result = predicted_result_dict[fpath]
-                if fpath not in result:
-                    result[fpath] = []
-                correct = []
-                for _date in dates:
-                    if _date in predicted_result:
-                        c = data[_date][0]
-                        correct.append(c)
-                        val = float(c) - int((1.0 - th) + predicted_result[_date])
-                        result[fpath].append(val)
-
-            # 日付を書き込む
-            dates_arr = [str(x) for x in dates]
-            _str = ",".join(dates_arr)
-            fw.write(",date,")
-            fw.write(_str)
-            fw.write("\n")
-            # 正解を書き込む
-            correct = [str(c) for c in correct]
-            _str = ",".join(correct)
-            fw.write(",correct,")
-            fw.write(_str)
-            fw.write("\n")
-            # 結果を書き込む
-            for fpath in flist:
-                th_data = result[fpath]
-                th_data = [str(x) for x in th_data]
-                _str = ",".join(th_data)
-                fw.write(fpath)          # Excelで閲覧した時に分離させる
-                fw.write(",")
-                fw.write(str(th))
-                fw.write(",")
-                fw.write(_str)
-                fw.write("\n")
-    return report_path
-
-
 # ROC曲線とAUCを求める
-def sub_process2(tag_name, target_dir, feature_generator, terms):
+def sub_process2(target_dir, feature_generator, terms):
     """ 保存されている学習器を次々と読みだして評価結果をファイルに保存する
+    target_dir: str, 学習器が保存されたフォルダ名
+    feature_generator: 特徴ベクトルを作成するクラス
+    terms: list, 処理期間を格納したリスト。要素はタプル。要素の数は複数あっても良い。
     """
     flist = mc.get_path_list(target_dir) # 学習器のファイルリストを取得
     print(flist)
@@ -152,31 +83,28 @@ def sub_process2(tag_name, target_dir, feature_generator, terms):
     print("correct: ", correct)
     amount_of_positive = correct.count(1)
     amount_of_negative = correct.count(0)
-    if amount_of_positive == 0 or amount_of_negative == 0: # いずれかが0であれば、計算する意味が無い
+    if amount_of_positive == 0 or amount_of_negative == 0:    # いずれかが0であれば、計算する意味が無い
         print("amount of positive/negative is 0. So, fin.")
         return
 
     # 評価用に特徴ベクトルを辞書に格納しなおす
-    features_dict = {}                                      # 日付をキーとした特徴ベクトル
-    for _date in dates:
-        features_dict[_date] = (None, data[_date][2], None) # 特徴ベクトルが欲しいだけなので前後をダミーデータを入れている
+    features = np.array([data[_date][2] for _date in dates])  # 特徴を入れた2次元配列
 
     # 予想結果を格納する
     predicted_result_dict = {}
     for fpath in flist:
-        # 学習器を読みだして復元
+        print("--scoring... now target is {0}--".format(fpath))
         clf = mc.load(fpath)    # オブジェクト復元
-        predicted_result = predict.predict2(clf, dates, features_dict, save=False, feature_display=False) # 何が返ってくるか忘れないために、一度変数に入れている。
-        predicted_result_dict[fpath] = predicted_result
+        y_score = clf.predict(features)
+        predicted_result_dict[fpath] = y_score
 
     # AUCを求め、結果をファイルに保存    
     auc_report = target_dir + "/learned_machine_report_auc.csv"
-    y_true = [int(data[_date][0]) for _date in dates]
+    y_true = np.array([int(data[_date][0]) for _date in dates])
     auc_max = (0, "")
     with open(auc_report, "w") as fw_auc:
         for fpath in flist:
-            predicted_result = predicted_result_dict[fpath]
-            y_score = [predicted_result[_date] for _date in dates]
+            y_score = predicted_result_dict[fpath]
 
             fpr, tpr, thresholds = mtr.roc_curve(y_true, y_score, pos_label=1)   # ftr: false_positive,  tpr: true_positive
             auc = mtr.auc(fpr, tpr)
@@ -186,24 +114,20 @@ def sub_process2(tag_name, target_dir, feature_generator, terms):
                 auc_max = (auc, fpath)
         fw_auc.write("AUC max:{0},{1}\n".format(auc_max[1], auc_max[0]))
         print("AUC max:", auc_max)
-    return roc_report # この返り値には何の意味があったっけ？
 
 
-def main_process(target_time, target_dir):
+
+def main_process(target_time, target_dir, terms):
     """ 
     外部からの呼び出しを意識している。
+    target_time: str, 予測したい時刻（生成する特徴量の作成に影響する）
+    target_dir: str, 学習器が保存されたフォルダ名
+    terms: list, 処理期間を格納したリスト。要素はタプル。要素の数は複数あっても良い。    
     """
-    # 処理対象の制限（処理時間の短縮になるかも）
-    #terms = [(dt(2016, 5, 1), dt(2016, 5, 19))] 
-    terms = [(dt(2016, 11, 1), dt(2016, 12, 17))] 
 
     # 引数に合わせて使う特徴ベクトル生成関数を変えて、検証する
     fg_obj = feature.feature_generator(target_time)
-    _path = sub_process2(target_time, target_dir, fg_obj, terms)
-
-    return [_path]
-
-
+    sub_process2(target_dir, fg_obj, terms)
 
 
 def main():
@@ -214,8 +138,8 @@ def main():
     print(argvs)
     argc = len(argvs)  # 引数の個数
     if argc > 2:
-        target_time = argvs[1]
-        target_dir = argvs[2]
+        target_time = argvs[1]   # 16 or 23
+        target_dir = argvs[2]    # 処理対象のフォルダ
     else:
         print("input target-number and target-dir.")
         exit()
@@ -223,7 +147,11 @@ def main():
     if not os.path.exists(target_dir):
         print("no such directry: ", target_dir)
         exit()
-    main_process(target_time, target_dir)
+
+    # 処理対象の制限（処理時間の短縮になるかも）
+    terms = [(dt(2017, 10, 1), dt(2017, 12, 27))] 
+
+    main_process(target_time, target_dir, terms)
 
 
 if __name__ == '__main__':

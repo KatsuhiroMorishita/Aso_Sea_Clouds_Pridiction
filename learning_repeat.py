@@ -16,6 +16,7 @@ import predict
 import feature
 import create_learning_data
 import timeKM
+import machine as mc
 
 
 def create_dir(path_list):
@@ -44,61 +45,28 @@ def process(tag_name, tc, save_flag=False, try_times=2000):
             print("--try count: {0}/{1}--".format(i, try_times))
 
             # 教師データを作成
-            verify_data, teacher_dates, teacher_features, teacher_flags = None, None, None, None
+            verify_data, teacher_dates, x, y = None, None, None, None
             if save_flag:
                 _save_name_teacher = tag_name + "/av_teaching_data" + tag_name + "_{0:05d}".format(i) + ".csv" # tc.save_teacher(ファイル名)で教師と検証データを保存するときに使う
                 _save_name_verify = tag_name + "/av_verify_data" + tag_name + "_{0:05d}".format(i) + ".csv"
-                verify_data, teacher_dates, teacher_features, teacher_flags = tc.save_teacher(save_name_teacher=_save_name_teacher, save_name_verify=_save_name_verify) # 毎回、呼び出すたびにデータセットの内容が変わる
+                verify_data, teacher_dates, x, y = tc.save_teacher(save_name_teacher=_save_name_teacher, save_name_verify=_save_name_verify) # 毎回、呼び出すたびにデータセットの内容が変わる
             else:
-                verify_data, teacher_dates, teacher_features, teacher_flags = tc.create_dataset() # 毎回、呼び出すたびにデータセットの内容が変わる
+                verify_data, teacher_dates, x, y = tc.create_dataset() # 毎回、呼び出すたびにデータセットの内容が変わる
             features_dict = tc.get_all_features()
-            training_data = (teacher_features, teacher_flags)
-            dates = sorted(verify_data.keys())                   # 学習に使っていない日付
-
-            # 学習
-            clf = learning.learn(training_data, tag_name)
-            result = predict.predict2(clf, dates, features_dict) # 学習に使っていないデータで検証
+            training_data = (x, y)
             
-            # 必要なら個別の結果も保存
-            if save_flag:
-                with open(tag_name + "/av_verify_data" + tag_name + "_{0:05d}".format(i) + "_result.csv", "w") as fw_result:
-                    for date in dates:
-                        if date in result:
-                            try:      # このtryはいらないんじゃないかな・・・
-                                fw_result.write(str(date))
-                                fw_result.write(",")
-                                fw_result.write(str(verify_data[date]))
-                                fw_result.write(",")
-                                fw_result.write(str(result[date]))
-                                fw_result.write("\n")
-                            except:
-                                pass
 
-            # 結果の集計
-            scale = 10
-            zero = [0.000001] * scale # sum()して分母に入れようとしたら、0の時にエラーが出るので0.000001とした
-            one = [0.000001] * scale
-            for date in dates:
-                if date in result:
-                    try:              # このtryはいらないんじゃないかな・・・
-                        c = verify_data[date]
-                        val = c - result[date]
-                        if int(c) == 0:
-                            zero[abs(int(val * scale))] += 1
-                        elif int(c) == 1:
-                            one[abs(int(val * scale))] += 1
-                        #print(val)
-                    except:
-                        pass
+            # 学習と保存
+            clf, score = learning.learn(training_data)
+            mc.save(clf, tag_name)
+            fw.write("{0},{1}\n".format(i, score))
 
-            # 最終結果の一覧ファイルへの保存
-            zero = [str(x / sum(zero)) for x in zero] # 正規化
-            one = [str(x / sum(one)) for x in one]
-            fw.write("{0},".format(i))
-            fw.write(",".join(zero))
-            fw.write(",,") # Excelで閲覧した時に分離させる
-            fw.write(",".join(one))
-            fw.write("\n")
+            # 過学習の確認（現状では役に立っていない）
+            dates = sorted(verify_data.keys())                   # 学習に使っていない日付
+            if len(dates) == 0:
+                continue
+            result = predict.predict2(clf, dates, features_dict) # 学習に使っていないデータで検証
+
 
 def main():
     # 引数の処理
@@ -111,13 +79,13 @@ def main():
     if argc > 3:
         target_time = argvs[1]      # 16 or 23
         target_dir = argvs[2]       # 結果を保存するフォルダ名
-        try_times = int(argvs[3])
+        try_times = int(argvs[3])   # 作成する学習器の数（RFなら2000〜3000が良いと思う）
     else:
         print("input: target-time, target-dir, try-times")
         exit()
 
     # 教師データ作成の準備
-    terms = [(dt(2004, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2017, 12, 20))] # for aso
+    terms = [(dt(2004, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2017, 9, 30))] # for aso
     #terms = [(dt(2010, 2, 18), dt(2013, 9, 3)), (dt(2015, 6, 23), dt(2016, 5, 1))] # for aso
     #terms = [(dt(2015, 6, 23), dt(2016, 2, 1))] # for aso
     #terms = [(dt(2015, 3, 1), dt(2016, 4, 1))] # for chichibu

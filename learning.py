@@ -27,30 +27,26 @@ def read_training_data(teaching_file_path):
     return (x, y)
 
 
-def learn(teaching_data, save_file_path):
+def learn(teaching_data):
     # 学習データの用意
     x, y = teaching_data
     clf = mc.new()                     # 学習器の新規作成
-    #X = preprocessing.StandardScaler().fit_transform(trainFeature)
+    #X = preprocessing.StandardScaler().fit_transform(trainFeature)  # 使った方が良いとは思うが、とりあえず放置
     
     # 学習実行と学習成果を保存
     clf.fit(x, y)
-    mc.save(clf, save_file_path)
 
-    # 学習結果を確認のために表示
-    print(x[2:3])
-    test = clf.predict(x[2:3])          # 試しに一つ確認
-    print(test)
-    result = clf.score(x, y)    # 学習データに対する、適合率
-    print(result)
+    # 学習結果を確認
+    score = clf.score(x, y)    # 学習データに対する、適合率
     #print(clf.feature_importances_)                    # 各特徴量に対する寄与度を求める
 
-    return clf
+    return clf, score
 
 
 def main():
     training_data = read_training_data("teaching_data.csv")
-    learn(training_data, mc.default_path)
+    clf, score = learn(training_data, mc.default_path)
+    mc.save(clf, "learnd_machine_temp")
 
 if __name__ == '__main__':
     main()
