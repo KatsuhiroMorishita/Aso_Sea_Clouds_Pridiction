@@ -149,7 +149,7 @@ def main():
         exit()
 
     # 処理対象の制限（処理時間の短縮になるかも）
-    terms = [(dt(2017, 10, 1), dt(2017, 12, 27))] 
+    terms = [(dt(2017, 10, 1), dt(2018, 1, 11))] 
 
     main_process(target_time, target_dir, terms)
 
