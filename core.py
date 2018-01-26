@@ -11,6 +11,7 @@ import sys
 import os
 import numpy as np
 import pandas
+import pandas as pd
 import pickle
 import math
 import time
@@ -36,6 +37,8 @@ def replace(data_list):
 	for mem in data_list:
 		if "×" == mem:
 			new_data.append("nan")
+		elif " ]" in mem:
+			new_data.append(mem.replace(" ]", ""))
 		elif "]" in mem:
 			new_data.append(mem.replace("]", ""))
 		else:
@@ -120,6 +123,60 @@ def get_amedas_data_typeB(node_obj, date):
 
 
 
+def get_amedas_data_typeA2(node_obj, date):
+	""" 過去のデータを取得し、文字列のリストとして返す
+	"""
+	lines = get_passed_amedas_data(node_obj, date, days)
+
+	# 最新のデータを入手
+	_date = dt.now() + td(days=1)
+	if date.year == _date.year and date.month == _date.month and date.day == _date.day:
+		html_txt = node_obj.get_data(_type="real-time")
+		#with open("hogehoge.txt", "w", encoding="utf-8-sig") as fw: # debug
+		#	fw.write(html_txt)
+		html_lines = html_txt.split("\n")
+		data = amp.get_data(html_lines, dt.now())
+		data = [replace(x) for x in data]
+		data = np.array(data)
+
+		df = pd.DataFrame(data[2:], columns=data[0])   # dataframeに変換
+		df = df.replace("", np.nan)                    # 未計測部分をnanに置換
+		df = df.replace("休止中", np.nan)
+		df["気温"] = df["気温"].astype(np.float64)  # 型の変換
+		df["湿度"] = df["湿度"].astype(np.float64)
+		nan = [float("nan")] * len(df)             # 未掲載データをnan
+		df["海面気圧"] = nan
+		df["視程"] = nan
+		df["雲量"] = nan
+		df["天気"] = nan
+		df["降雪"] = nan
+		df["積雪"] = nan
+		df["全天日射量"] = nan
+		df["日照時間"] = nan
+
+		temp = np.array(df["気温"])          # 気温などから水蒸気圧と露点温度を計算する
+		humidity = np.array(df["湿度"])
+		P_hPa = feature.get_vapor_pressure(humidity, temp)
+		df["水蒸気圧"] = P_hPa
+		dew_point_temperature = feature.get_dew_point(humidity, temp)
+		df["露点温度"] = dew_point_temperature
+		df2 = df.ix[:,["日時", '時刻', "気圧", "海面気圧", "降水量", '気温', "露点温度", "水蒸気圧", "湿度", "風速", "風向", "日照時間", "全天日射量", "降雪", "積雪", "天気", "雲量", "視程",]]
+		df2 = df2.replace(np.nan, 0.0)
+
+		# join時にエラーが出ないように全てを文字列化
+		data = np.array(df2)
+		dummy = []
+		for x in data:
+			x = [str(y) for y in x]
+			dummy.append(x)
+		data = dummy
+		#print(data)
+		lines += [",".join(x) for x in data]
+
+	return lines
+
+
+# 念のために、この関数は保存しておく
 def get_amedas_data_typeA(node_obj, date):
 	# 過去のデータを取得
 	lines = get_passed_amedas_data(node_obj, date, days)
@@ -132,7 +189,6 @@ def get_amedas_data_typeA(node_obj, date):
 		html_lines = html_txt.split("\n")
 		data = amp.get_data(html_lines, dt.now())
 		data = [replace(x) for x in data]
-		print(data)
 		# 最新の観測データは過去の観測データとフォーマットが異なるので、整形する
 		# 気圧を入れ替える
 		dummy = []
@@ -226,7 +282,7 @@ def get_amedas_data(node_obj, date):
 	含まれる情報別に、ダウンロード後の文字列解析に使う関数を使い分けている。
 	"""
 	if int(node_obj.block_no) > 47000:
-		return get_amedas_data_typeA(node_obj, date)
+		return get_amedas_data_typeA2(node_obj, date)
 	else:
 		return get_amedas_data_typeB(node_obj, date)
 	
@@ -272,7 +328,7 @@ def main():
 		node = amedas_nodes[block_no]
 		lines = get_amedas_data(node, target_date)
 		weather_data = feature.get_weather_dict(lines)
-		_keys = sorted(weather_data.keys())       # 確認のために表示
+		_keys = sorted(weather_data.keys())
 		for a_key in _keys:
 			print(block_no, weather_data[a_key])
 		if int(node.block_no) > 47000:

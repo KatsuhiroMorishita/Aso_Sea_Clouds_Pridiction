@@ -13,7 +13,6 @@ import datetime
 import numpy as np
 from datetime import datetime as dt
 from datetime import timedelta as td
-import math
 import copy
 import re
 import timeKM
@@ -289,9 +288,9 @@ def create_feature23(_date, weather_library):
     _feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_unzendake, "視程")]
     _feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_kumamoto, "雲量")]
     #print("fuga")
-    _feature = [-math.e if x == None else x for x in _feature] # 欠損値を-eに置換
-    _feature = [-math.e if x == "休止中" else x for x in _feature] # 欠損値を-eに置換
-    _feature = [-math.e if x == "#" else x for x in _feature] # 欠損値を-eに置換
+    _feature = [-np.e if x == None else x for x in _feature] # 欠損値を-eに置換
+    _feature = [-np.e if x == "休止中" else x for x in _feature] # 欠損値を-eに置換
+    _feature = [-np.e if x == "#" else x for x in _feature] # 欠損値を-eに置換
     #print(_feature)
     return np.array(_feature)
 
@@ -347,9 +346,9 @@ def create_feature16(_date, weather_library):
     _feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_unzendake, "視程")]
     _feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_kumamoto, "雲量")]
     #print("fuga")
-    _feature = [-math.e if x == None else x for x in _feature] # 欠損値を-eに置換
-    _feature = [-math.e if x == "休止中" else x for x in _feature] # 欠損値を-eに置換
-    _feature = [-math.e if x == "#" else x for x in _feature] # 欠損値を-eに置換
+    _feature = [-np.e if x == None else x for x in _feature] # 欠損値を-eに置換
+    _feature = [-np.e if x == "休止中" else x for x in _feature] # 欠損値を-eに置換
+    _feature = [-np.e if x == "#" else x for x in _feature] # 欠損値を-eに置換
     #print(_feature)
     return np.array(_feature)
 
@@ -408,9 +407,9 @@ def create_feature18(_date, weather_library):
     _feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_unzendake, "視程")]
     _feature += [get_measurement_value(dt(y, m, d, 21) - td(days=1), weather_kumamoto, "雲量")]
     #print("fuga")
-    _feature = [-math.e if x == None else x for x in _feature] # 欠損値を-eに置換
-    _feature = [-math.e if x == "休止中" else x for x in _feature] # 欠損値を-eに置換
-    _feature = [-math.e if x == "#" else x for x in _feature] # 欠損値を-eに置換
+    _feature = [-np.e if x == None else x for x in _feature] # 欠損値を-eに置換
+    _feature = [-np.e if x == "休止中" else x for x in _feature] # 欠損値を-eに置換
+    _feature = [-np.e if x == "#" else x for x in _feature] # 欠損値を-eに置換
     #print(_feature)
     return np.array(_feature)
 
@@ -463,7 +462,7 @@ def get_Tetens(t):
     http://www.s-yamaga.jp/nanimono/taikitoumi/kukichunosuijoki.htm#tetensの式, 同じベージのSonntagの式は間違っているとしか思えん。
     """
     #T = t + 273.15
-    #E_hPa = (math.exp(-6096.9385 * T**-1 + 21.240942 - 2.711193 * 10**-2 + 1.673852 * 10**-5 * T**2 + 2.433502 * math.log(T))) / 100 # Sonntagの式?
+    #E_hPa = (np.exp(-6096.9385 * T**-1 + 21.240942 - 2.711193 * 10**-2 + 1.673852 * 10**-5 * T**2 + 2.433502 * np.log(T))) / 100 # Sonntagの式?
     
     a = 7.5
     b = 237.3
@@ -488,7 +487,7 @@ def GofGra(t):
     """
     water_vapor_at_saturation = 10 ** \
       (10.79574 * (1 - 273.16/(t + 273.15)) - \
-       5.02800 * math.log10((t + 273.15)/273.16) + \
+       5.02800 * np.log10((t + 273.15)/273.16) + \
        1.50475 * 10**(-4) * (1-10**(-8.2969 * ((t + 273.15)/273.16 - 1))) + \
        0.42873 * 10**(-3) * (10**(4.76955*(1 - 273.16/(t + 273.15))) - 1) + \
        0.78614)
@@ -500,8 +499,8 @@ def get_dew_point(U, t):
     t 気温[deg]
     U 相対湿度[%]
     """
-    dew_point_temperature = -(math.log(GofGra(t)*U/100/6.1078) * 237.3) / \
-        (math.log(GofGra(t)*U/100/6.1078) - 17.2693882)
+    dew_point_temperature = -(np.log(GofGra(t)*U/100/6.1078) * 237.3) / \
+        (np.log(GofGra(t)*U/100/6.1078) - 17.2693882)
     return dew_point_temperature
 
 
