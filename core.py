@@ -28,6 +28,9 @@ days = 6
 wait_seconds = 0.1                        # たまにプロキシ？ファイヤウォール？が通信をカットするのでその対策.ほとんど意味がなかったが。。
 
 
+ROOT_PATH = os.path.dirname(os.path.abspath(__file__))  # このスクリプトのあるディレクトリの絶対パス
+
+
 
 def replace(data_list):
     """ 文字列の要素からなるリストを走査して、都合の悪い文字を削除して返す
@@ -337,7 +340,7 @@ def main(save_flag=True):
     fg_obj = feature.feature_generator(target_time, features_dict)
 
     # 機械学習オブジェクトを生成
-    clf = mc.load(os.path.abspath("./learned_machine/time" + str(target_time)))
+    clf = mc.load(os.path.abspath(ROOT_PATH + "/learned_machine/time" + str(target_time)))
     print(type(clf))
 
     # 特徴ベクトルを生成
@@ -360,7 +363,7 @@ def main(save_flag=True):
 
     # 予測結果を保存
     if save_flag:
-        with open("result.csv", "w") as fw:
+        with open(ROOT_PATH + "/result.csv", "w") as fw:
             for result in results:
                 _date, predict_result, _feature = result
                 str_feature = [str(x) for x in _feature]
