@@ -340,8 +340,8 @@ def main(save_flag=True):
     fg_obj = feature.feature_generator(target_time, features_dict)
 
     # 機械学習オブジェクトを生成
-    clf = mc.load(os.path.abspath(ROOT_PATH + "/learned_machine/time" + str(target_time)))
-    print(type(clf))
+    clf = mc.load(ROOT_PATH + "/learned_machine/time" + str(target_time))
+    print("type ", type(clf))
 
     # 特徴ベクトルを生成
     _feature = fg_obj.get_feature(target_date)
