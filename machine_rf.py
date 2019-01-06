@@ -7,7 +7,7 @@
 # license: MIT
 #-------------------------------------------
 from sklearn.ensemble import RandomForestRegressor as ml # RF
-import pickle
+from sklearn.externals import joblib
 import glob
 import os
 
@@ -36,7 +36,7 @@ def _get_new_path():
 	"""
 	i = 0
 	while True:
-		_path = "av_entry_temp_{0:05d}.pickle".format(i)
+		_path = "av_entry_temp_{0:05d}.cmp".format(i)
 		i += 1
 		yield _path
 
@@ -55,17 +55,14 @@ def save(clf, dir_path):
 	print(dir_path)
 	create_dir([dir_path])
 	_fpath = dir_path + "/" + next(path_generator)
-	with open(_fpath, 'wb') as f:
-		pickle.dump(clf, f)
+	joblib.dump(clf, _fpath, compress=True)
 	return
 
 
 def load(path):
 	""" 機械学習オブジェクトをファイルから復元する
 	"""
-	clf = new()
-	with open(path, 'rb') as f:     # 学習成果を読み出す
-		clf = pickle.load(f)        # オブジェクト復元
+	clf = joblib.load(path)        # 機械学習オブジェクト復元
 	return clf
 
 
@@ -73,7 +70,7 @@ def get_path_list(base):
 	""" 機械学習オブジェクトをのファイルまたはフォルダ一覧を取得する
 	"""
 	#_group = set(["gaph.pgtxt", "model-200.meta", "", "", "", ""]) # ファイル内容の凶器を使うならと思ったけど面倒なので放置
-	flist = glob.glob(base + "/*.pickle")
+	flist = glob.glob(base + "/*.cmp")
 	ans = []
 	for fpath in flist:
 		if os.path.isfile(fpath):
