@@ -3,6 +3,7 @@
 #-------------------------------------------
 # 機械学習器のインターフェイス. TensorFlow用.
 # memo: Python3.5.1 on pyenv on Macにて動作確認。
+#       2019-01-06追記　おそらく、今はもう動かないし実装が古い。
 # author: Katsuhiro Morishita
 # created: 2016-05-05
 # license: MIT
