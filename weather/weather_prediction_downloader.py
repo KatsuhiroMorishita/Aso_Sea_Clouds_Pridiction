@@ -10,6 +10,7 @@ import time
 import glob
 import os
 
+
 # ダウンロードする時刻をセット　ここでは、過去も含む
 hours = []
 for i in range(24): # 気象庁の予報はいつ更新されるか分からない・・・
@@ -33,8 +34,10 @@ if len(flist) > 0:
 	#print(create_times)
 	lasted_fpath = flist[create_times.index(max(create_times))]
 
-	with open(lasted_fpath, "r", encoding="utf-8-sig") as fr:
+	with open(lasted_fpath, "r", encoding="utf-8-sig", errors="ignore") as fr:
 		txt = fr.read()
+		#print(type(txt)) # 何故かエラーが・・・
+		#exit()
 
 
 _hash = hash(txt)

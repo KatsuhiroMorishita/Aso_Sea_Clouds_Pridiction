@@ -16,7 +16,12 @@ import re
 
 
 
-web_cam_list = ["http://www.webtv-aso.net/lv/liveimg/image.jpg", \
+#web_cam_list = ["http://www.webtv-aso.net/lv/liveimg/image.jpg", \
+#                None, \
+#                "http://www.aso.vgs.kyoto-u.ac.jp/camera/image1.jpg", \
+#                "http://www.whoshian.com/kazenotayori/image/licamaso.jpg"]
+
+web_cam_list = ["http://www.webtv-aso.net/liveimg/image.jpg", \
                 None, \
                 "http://www.aso.vgs.kyoto-u.ac.jp/camera/image1.jpg", \
                 "http://www.whoshian.com/kazenotayori/image/licamaso.jpg"]
@@ -42,8 +47,8 @@ def download(url, path):
 
 # ダウンロードする時刻をセット　ここでは、過去も含む
 times = []
-for hour in range(24):             # 
-	for minute in range(0,60,10):  # 
+for hour in range(6, 10):             # 
+	for minute in range(0,60,30):  # 
 		#for second in range(0, 60, 10):
 		second = 0
 		times.append(td(hours=hour, minutes=minute, seconds=second))

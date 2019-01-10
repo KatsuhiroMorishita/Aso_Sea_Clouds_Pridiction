@@ -34,6 +34,7 @@ ROOT_PATH = os.path.dirname(os.path.abspath(__file__))  # このスクリプト�
 
 def replace(data_list):
     """ 文字列の要素からなるリストを走査して、都合の悪い文字を削除して返す
+    不正文字データの処理はfeature.get_weather_dict()がやってくれるはずだが、、、なんで作ったんだっけ？@2019-01
     """
     new_data = []
     for mem in data_list:
@@ -43,6 +44,10 @@ def replace(data_list):
             new_data.append(mem.replace(" ]", ""))
         elif "]" in mem:
             new_data.append(mem.replace("]", ""))
+        elif " )" in mem:
+            new_data.append(mem.replace(" )", ""))
+        elif ")" in mem:
+            new_data.append(mem.replace(")", ""))
         else:
             new_data.append(mem)
     return new_data

@@ -24,7 +24,7 @@ index_A = {"時刻":0, "現地気圧":1, "海面気圧":2, "降水量":3, "気�
 
 
 def get_season(_date):
-    """ 日付けをシーズン化したもの
+    """ 引数で受け取った日付が元旦（1/1）から数えて第何週かを返す
     """
     return int((_date - datetime.datetime(_date.year, 1, 1)).total_seconds() / (7 * 24 * 3600))
 
@@ -97,34 +97,49 @@ def get_values(origin_time, data_set, key, term_hours=range(1, 25)):
     return values
 
 
-def get_average(origin_time, data_set, key, term_hours=range(0, 24), remove=["休止中", "#", None]):
+def get_average(origin_time, data_set, key, term_hours=range(0, 24), skip_vals=["休止中", "#", None]):
     """ 観測値の平均を返す
+    skip_vals: list<主にstr>, 観測値のうち、無視する値を格納したリスト
     """
     values = get_values(origin_time, data_set, key, term_hours)
     _values = []
     for val in values:
-        if val in remove:
+        if val in skip_vals:
             continue
         _values.append(val)
     if len(_values) == 0:
         return None
     else:
-        return sum(_values) / float(len(_values))
+        try:
+            return sum(_values) / float(len(_values))
+        except Exception as e:    # たまに、数値に加工できないデータがあるので、そのときはエラーを吐くようにする
+            print(str(e))
+            print(_values)
+            print([type(a) for a in _values])
+            raise
 
 
-def get_someone(origin_time, data_set, key, term_hours, func):
-    """ 観測値の平均を返す
+def get_someone(origin_time, data_set, key, term_hours, func, skip_vals=["休止中", "#", None]):
+    """ 観測値の配列を引数で受け取った関数funcに入力した返り値を返す
+    funcはmax()やmin()を想定しています。
+    skip_vals: list<主にstr>, 観測値のうち、無視する値を格納したリスト
     """
     values = get_values(origin_time, data_set, key, term_hours)
     _values = []
     for val in values:
-        if val in ["休止中", "#", None]:
+        if val in skip_vals:
             continue
         _values.append(val)
     if len(_values) == 0:
         return None
     else:
-        return func(_values)
+        try:
+            return func(_values)
+        except Exception as e:    # たまに、数値に加工できないデータがあるので、そのときはエラーを吐くようにする
+            print(str(e))
+            print(_values)
+            print([type(a) for a in _values])
+            raise
 
 
 def get_TTd(_date, hour, data_set):
@@ -186,13 +201,12 @@ def get_weather_dict(lines):
                 mem = re.sub(" |　|[)]", "", mem)
             fuga = mem.replace(".", "")
             fuga = fuga.replace(" )", "")            # 観測上のおかしなデータにくっつく記号
-            #if len(fuga) > 0:
-            #    if "-" == fuga[0]:
-            #        fuga = fuga[1:]
+            fuga = fuga.replace(" ]", "")
             fuga = fuga.replace("-", "")             # -10, 10-　みたいなパターン。数値の前のマイナス符号があれば負値。
             fuga = fuga.replace("+", "")             # +10, 10+　みたいなパターン。
-            if fuga.isdigit() == True:
+            if fuga.isdigit() == True:               # いろいろ取り除くと数値に変換できるかチェック
                 mem = mem.replace(" )", "")
+                mem = mem.replace(" ]", "")
                 if "-" == mem[-1] or "+" == mem[-1]: # 10-, 10+　みたいなパターンへの対応
                     mem = mem[:-1]
                 new_field.append(float(mem))

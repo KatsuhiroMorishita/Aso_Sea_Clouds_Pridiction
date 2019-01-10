@@ -9,5 +9,5 @@ def download(url, path):
     local.close()
     fp.close()
 
-download("http://www.webtv-aso.net/lv/liveimg/image.jpg", "./");
+download("http://www.webtv-aso.net/lv/liveimg/image.jpg", "./")
 
