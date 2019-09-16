@@ -8,11 +8,13 @@
 # lisence: MIT
 #----------------------------------------
 import os
+import re
 import sys
 import time
 import requests
 from datetime import datetime as dt
 from datetime import timedelta as td
+from dateutil.relativedelta import relativedelta
 
 
 start_date = dt(2016,4,12) # 処理期間をこれで表す。どうせ初期化されるので、書き込んでいる日付けはテキトー。
@@ -54,8 +56,10 @@ class amedas_node:
 	def get_data(self, _type="10min", date=None):
 		""" 指定されたデータタイプの観測データをダウンロードする
 		"""
+		# create URL
+		# daily example: http://www.data.jma.go.jp/obd/stats/etrn/view/daily_s1.php?prec_no=86&block_no=47819&year=2017&month=2&day=3&view=
 		url = ""
-		if _type == "10min" or _type == "hourly":
+		if _type == "10min" or _type == "hourly" or _type == "daily":
 			url = "http://www.data.jma.go.jp/obd/stats/etrn/view/" + \
 				_type + "_" + self._url_part + "1.php?" + \
 				"prec_no=" + self._prec_no + \
@@ -78,17 +82,23 @@ class amedas_node:
 			print("--download error--", str(e))
 		return html
 
-	def save(self, _type="10min", date=None):
+	def save(self, _type="10min", date=None, force=False):
 		""" 指定されたデータタイプの観測データをダウンロードして、規定のディテクトリ構造で保存する
 		"""
-		html = self.get_data(_type, date)
-		if html != None:
-			_dir_path = ["Raw HTML", self._block_no + "_" + self.name, date.strftime("%Y")]
-			_dir = create_dir(_dir_path)
-			fname = self._block_no + "_" + self.name + date.strftime("_%Y_%m_%d") + ".html"
-			path = os.path.join(_dir, fname)
-			with open(path, "w", encoding="utf-8-sig") as fw:
-				fw.write(html)
+		_dir_path = ["Raw HTML", self._block_no + "_" + self.name, date.strftime("%Y")]
+		_dir = create_dir(_dir_path)
+		fname = self._block_no + "_" + self.name + date.strftime("_%Y_%m_%d") + ".html"
+		path = os.path.join(_dir, fname)
+
+		if os.path.exists(path) == False or force == True: # ダウンロード済みでない、またはウンロードが指示されている場合はダウンロードを試みる
+			html = self.get_data(_type, date)
+			if html != None:
+				with open(path, "w", encoding="utf-8-sig") as fw:
+					fw.write(html)
+			return True
+		elif os.path.exists(path):
+			print("{0} is already exist.".format(path))
+			return False
 
 	@property
 	def name(self):
@@ -126,11 +136,17 @@ def get_amedas_nodes():
 def main():
 	# 引数の処理
 	argvs = sys.argv
-	_type = ""
+	_type = ""          # ダウンロードするデータのタイプ（日ごと、1時間ごと、10分ごと）
+	_force = False      # 既にhtmlファイル（中身はチェックしない）があるかどうかに関わらず新規にダウンロードする場合はTrue
 	if len(argvs) >= 2:
 		_type = argvs[1]
+		if _type not in "daily hourly 10min real-time": # 引数ミスのチェック
+			print("please set argv. e.g. daily, hourly, 10min, real-time.")
+			exit()
+		if "-f" in argvs:
+			_force = True
 	else:
-		print("please set argv. e.g. hourly, 10min, real-time.")
+		print("please set argv. e.g. daily, hourly, 10min, real-time.")
 		exit()
 
 	amedas_nodes = get_amedas_nodes()
@@ -149,7 +165,7 @@ def main():
 				continue
 			if "#" in line:
 				continue
-			field = line.split("\t")
+			field = re.split("\t|,|\s+", line)
 			print(field)
 			block_no, name = field
 			while True:                   # Excelで編集した際に文字列先頭の0を無くしちゃうことがあるが、面倒なのでコードで対応
@@ -168,9 +184,13 @@ def main():
 	while t <= end_date:
 		for val in target:
 			node = amedas_nodes[val]
-			node.save(_type, t)
-			time.sleep(0.5)
-		t += td(days=1)
+			isaccess = node.save(_type, t, force=_force)
+			if isaccess:
+				time.sleep(0.2)
+		if _type == "10min" or _type == "hourly" or _type == "real-time":
+			t += td(days=1)
+		elif _type == "daily":
+			t += relativedelta(months=1)
 
 
 	"""
