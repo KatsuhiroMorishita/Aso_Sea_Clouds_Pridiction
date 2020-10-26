@@ -5,10 +5,10 @@
 # purpose:  AMeDASのhtmlファイルを処理して、CSVファイルに変換・保存する
 # author: morishita
 # created: 10/12/2013
-# copyright: (c) morishita 2013
-# licence: MIT
 # history: 2014-01-19   観測値が確定していない場合に「)」が付くが、これに対応した。
 #          2014-03-20   10分データのhtmlファイルフォーマットに対応していないバグを修正した。 
+# copyright: (c) morishita 2013
+# Licence: MIT. If you use this program for your study, you should write Acknowledgement in your paper.
 #-------------------------------------------------------------------------------
 #!/usr/bin/env python
 import os
@@ -325,7 +325,7 @@ def get_data(lines, date=None):
         temp_data = []
         for x in data:
             #print("--x--", x)
-            t = x[0]
+            t = str(x[0])    # Python3.7.4の？pandasでは整数化されるので、文字列に変換する
             if "時" in t: # 日時を1列目に加えるために、項目名を増やす
                 x.insert(0, "日時")
                 continue

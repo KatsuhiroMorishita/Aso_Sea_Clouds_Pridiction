@@ -81,6 +81,8 @@ def get_passed_amedas_data(node_obj, date, term):
 
 
 def get_amedas_data_typeB(node_obj, date):
+    """ 気象庁の気象データを取得して返す（簡易な観測局用）
+    """
     # 過去のデータを取得
     lines = get_passed_amedas_data(node_obj, date, days)
     # 最新のデータを入手
@@ -131,8 +133,9 @@ def get_amedas_data_typeB(node_obj, date):
 
 
 def get_amedas_data_typeA2(node_obj, date):
-    """ 過去のデータを取得し、文字列のリストとして返す
+    """ 気象庁の気象データを取得して返す（簡易な観測局用）
     """
+    # 過去のデータを取得し、文字列のリストとして返す
     lines = get_passed_amedas_data(node_obj, date, days)
 
     # 最新のデータを入手
@@ -145,14 +148,18 @@ def get_amedas_data_typeA2(node_obj, date):
         data = amp.get_data(html_lines, dt.now())
         data = [replace(x) for x in data]
         data = np.array(data)
+        columns = data[0]
+        columns = ["海面" + c if "気圧" in c else c for c in columns]
 
-        df = pd.DataFrame(data[2:], columns=data[0])   # dataframeに変換
+        df = pd.DataFrame(data[2:], columns=columns)   # dataframeに変換
         df = df.replace("", np.nan)                    # 未計測部分をnanに置換
         df = df.replace("休止中", np.nan)
         df["気温"] = df["気温"].astype(np.float64)  # 型の変換
         df["湿度"] = df["湿度"].astype(np.float64)
+        df["海面気圧"] = df["海面気圧"].astype(np.float64)
         nan = [float("nan")] * len(df)             # 未掲載データをnan
-        df["海面気圧"] = nan
+        h = node_obj.height
+        df["現地気圧"] = df["海面気圧"] * (1 - (0.0065 * h) / (df["気温"] + 0.0065 * h + 273.15))**5.257  # https://keisan.casio.jp/exec/system/1203469826
         df["視程"] = nan
         df["雲量"] = nan
         df["天気"] = nan
@@ -167,7 +174,7 @@ def get_amedas_data_typeA2(node_obj, date):
         df["水蒸気圧"] = P_hPa
         dew_point_temperature = feature.get_dew_point(humidity, temp)
         df["露点温度"] = dew_point_temperature
-        df2 = df.ix[:,["日時", '時刻', "気圧", "海面気圧", "降水量", '気温', "露点温度", "水蒸気圧", "湿度", "風速", "風向", "日照時間", "全天日射量", "降雪", "積雪", "天気", "雲量", "視程",]]
+        df2 = df[["日時", '時刻', "現地気圧", "海面気圧", "降水量", '気温', "露点温度", "水蒸気圧", "湿度", "風速", "風向", "日照時間", "全天日射量", "降雪", "積雪", "天気", "雲量", "視程"]]
         df2 = df2.replace(np.nan, 0.0)
 
         # join時にエラーが出ないように全てを文字列化
@@ -295,37 +302,15 @@ def get_amedas_data(node_obj, date):
     
 
 
-def main(save_flag=True):
-    # 予想したい日の日付けを設定
-    target_date = None
-    _day = dt.now()        # まずはコマンドライン引数による指定がない場合を想定
-    if _day.hour >= 16:    # この時刻を過ぎると、翌日の予想を実施する
-        _day += td(days=1)
-    target_date = dt(year=_day.year, month=_day.month, day=_day.day)
 
-    argvs = sys.argv       # コマンドライン引数を格納したリストの取得
-    argc = len(argvs)      # 引数の個数
-    if argc >= 2:          # 引数で計算対象の日を渡す
-        arg = argvs[1]
-        arg += " 0:0:0"    # 時分秒を加える
-        t = timeKM.getTime(arg)
-        if t != None:
-            target_date = t    
-    print(target_date)
-
-    # 予測を実行する時刻を決定する（引数がなければスクリプト実行時の時刻が使われる）
-    process_hour = dt.now().hour
-    if argc >= 3:          # 引数で予想実行時刻を渡す（その時刻に雲海が出るかを確認するものではない）
-        arg = argvs[2]
-        if arg.isdigit():
-            process_hour = int(arg)
+def predict_unkai(target_date:dt, process_hour:int, save_flag=True):
+    print("予測対象日：", target_date)
 
     # 予報する対象の時刻
     target_time = 23
     if 23 > process_hour >= 16:
         target_time = 16
-
-
+    
     # アメダスの観測所オブジェクトを作成
     amedas_nodes = amd.get_amedas_nodes()
     #print(amedas_nodes)
@@ -356,6 +341,7 @@ def main(save_flag=True):
     # 予測を実施
     print("--predict--")
     print("target date: " + str(target_date))
+    print("target time: " + str(target_time))
     print("process hur: " + str(process_hour))
 
     results = []
@@ -384,6 +370,49 @@ def main(save_flag=True):
                 fw.write("\n")
 
     return results
+
+
+
+def get_date_now():
+    """ 現在時刻を基にした、予想日と時間を返す
+    """
+    # 予測対象日を求める
+    _day = dt.now()        # 現在時刻を取得
+    if _day.hour >= 16:    # この時刻を過ぎると、翌日の予想を実施する
+        _day += td(days=1)
+    target_date = dt(year=_day.year, month=_day.month, day=_day.day) 
+
+    # 予測を実行する時刻
+    process_hour = _day.hour
+
+    return target_date, process_hour
+
+
+
+def main():
+    # 予測対象日や時刻の決定
+    target_date, process_hour = get_date_now()
+
+    # 予想したい日の日付けを設定
+    argvs = sys.argv       # コマンドライン引数を格納したリストの取得
+    argc = len(argvs)      # 引数の個数
+    if argc >= 2:          # 引数で計算対象の日を渡す
+        arg = argvs[1]
+        arg += " 0:0:0"    # 時分秒を加える
+        t = timeKM.getTime(arg)
+        if t != None:
+            target_date = t    
+
+    # 予測を実行する時刻を決定する（引数がなければスクリプト実行時の時刻が使われる）
+    if argc >= 3:          # 引数で予想実行時刻を渡す（その時刻に雲海が出るかを確認するものではない）
+        arg = argvs[2]
+        if arg.isdigit():
+            process_hour = int(arg)
+
+    # 雲海が出るか予想値の計算
+    result = predict_unkai(target_date, process_hour)
+    return result
+
 
 
 if __name__ == '__main__':
